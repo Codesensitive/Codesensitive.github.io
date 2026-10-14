@@ -1,5 +1,7 @@
 # PDF upload and Q&A verification
 
+> **Embedding/OCR update:** The current version adds MiniLM/BGE model switching, local vector retrieval, model caching/download links and optional English OCR for scanned PDFs/images. The 17 automated tests pass, including actual OCR of a synthetic scanned image. Local browser tests verified both model activations, a synonym-style vehicle query, corpus reindexing, OCR recognition of a scanned PDF, and its page citation. The older PDF-only scope statement below records the previous version; current limitations are in `SEMANTIC_OCR_GUIDE.md`.
+
 Date: 15 October 2026 (India time).
 
 ## Reproduced issues

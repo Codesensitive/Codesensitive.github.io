@@ -2,7 +2,7 @@
 
 Live portfolio: https://codesensitive.github.io/
 
-Evidence Lab runs PDF/text/Markdown ingestion, overlapping chunks, BM25 ranking, and cited extractive Q&A entirely in the visitor's browser. PDFs are parsed locally with the vendored PDF.js runtime; document text is not sent to a service. PDF citations and JSON traces retain page numbers. It does not use an LLM or vector embeddings. Files remain in session memory; reloading restores samples. Fonts load from Google Fonts.
+Evidence Lab runs PDF/text/image ingestion, optional English OCR, and BM25 or local embedding retrieval in the visitor's browser. PDF citations and JSON traces retain page numbers and OCR provenance. MiniLM and BGE weights download from Hugging Face; inference runs locally. Document contents are not sent to a service. There is no generative LLM. Documents and vectors stay in session memory; model files can be cached by the browser. Fonts load from Google Fonts.
 
 ## Develop
 
@@ -10,6 +10,7 @@ Requires Node.js 24 for development and tests. Visitors do not install anything.
 
 ```sh
 npm ci
+npm run prepare:ai
 npm start
 npm test
 ```
@@ -23,15 +24,24 @@ Open http://127.0.0.1:4173 for local preview.
 - `dist/engine.js`: chunking, tokenization, BM25, extraction, sample evaluation
 - `dist/app.js`: uploads, controls, citations, query trace export
 - `dist/documents.js`: format validation, UTF-8 decoding, PDF parsing and resource limits
+- `dist/models.js`: local model catalog, cosine ranking and cutoffs
+- `dist/embeddings.js` and `dist/embedding-worker.js`: cancellable model loading, vector indexing, and semantic search in a Web Worker
+- `dist/ocr.js`: Tesseract English OCR for rasterized PDF pages and images
 - `dist/vendor/pdfjs/`: pinned browser PDF.js runtime and license
+- `dist/vendor/transformers`, `ort`, and `ocr`: locally served embedding/OCR runtimes and English language data
 - `tests.mjs`: retrieval smoke tests
 - `tests/fixtures/`: synthetic PDFs for positive and negative tests
 - `scripts/prepare-pdf.mjs`: refresh vendored runtime after an intentional PDF.js dependency update (`npm run prepare:pdf`)
+- `scripts/prepare-ai.mjs`: refresh embedding/OCR runtime assets (`npm run prepare:ai`)
 
 ## Deploy
 
 GitHub Pages publishes `dist` via `.github/workflows/pages.yml` on pushes to `main`. Pages uses GitHub Actions as its build source. Local edits need to be committed and pushed to become live.
 
-The UI supports selectable-text PDFs and UTF-8 .txt/.md files, up to 2 MiB per file, 20 documents and 8 MiB of extracted text per session. PDFs are limited to 100 pages and 30 seconds of parsing. Password-protected and damaged PDFs return actionable errors. Scanned/image-only PDFs require OCR and are unsupported; partially textless PDFs show a warning. Reading order in complex layouts may vary. Retrieval matches terms rather than meaning; a positive score is not confidence. The bundled evaluation is a small deterministic smoke suite, not a production quality benchmark.
+The UI supports PDF, UTF-8 .txt/.md and PNG/JPEG files, up to 2 MiB per file, 20 documents and 8 MiB of extracted text per session. Text PDFs are limited to 100 pages. Enable English OCR to read textless scanned pages (up to 10 per PDF) or images. OCR can contain errors and does not process image text on a page that already has selectable text. Image input is limited to 16 megapixels. Password-protected and damaged PDFs return actionable errors. Reading order in complex layouts may vary.
+
+Local semantic retrieval supports up to 200 chunks, uses quantized 384-dimensional MiniLM/BGE embeddings, and rebuilds vectors when the model or corpus changes. Cosine cutoffs (MiniLM 0.25, BGE 0.5) are heuristics, not confidence or factual support. Long inputs are truncated to the selected model's token limit. BM25 remains available without downloading a model. The included on-page evaluation tests the BM25 sample corpus, independently of selected model and uploaded files.
+
+See `SEMANTIC_OCR_GUIDE.md` for usage, model sources, caching, Google/Microsoft distinctions, and limitations.
 
 GitHub Actions runs the automated tests before deploying. Browser end-to-end coverage is recorded in `TEST_REPORT.md`.

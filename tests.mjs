@@ -3,6 +3,9 @@ import assert from 'node:assert/strict';
 import {samples,buildIndex,search,excerpt,evaluate} from './dist/engine.js';
 import {readFile} from 'node:fs/promises';
 import {readDocument,validateFile,MAX_FILE_BYTES} from './dist/documents.js';
+import {MODEL_CATALOG,modelInfo,cosine,rankVectors} from './dist/models.js';
+import {createWorker as createOcrWorker} from 'tesseract.js';
+import {fileURLToPath} from 'node:url';
 
 const fixture=async name=>{const data=await readFile(new URL(`./tests/fixtures/${name}`,import.meta.url));return new File([data],name);};
 test('bundled evaluation passes',()=>assert.ok(evaluate().every(c=>c.pass)));
@@ -35,5 +38,25 @@ test('text ingestion still works and rejects invalid files',async()=>{
   await assert.rejects(()=>readDocument(new File([new Uint8Array([255])],'bad.txt')),/UTF-8/);
   await assert.rejects(()=>readDocument(new File(['\0binary'],'bad.txt')),/Binary/);
   assert.throws(()=>validateFile({name:'large.pdf',size:MAX_FILE_BYTES+1}),/2 MB/);
-  assert.throws(()=>validateFile({name:'image.png',size:20}),/Use a/);
+  assert.throws(()=>validateFile({name:'report.docx',size:20}),/Use a/);
+});
+test('OCR images require explicit opt in',async()=>assert.rejects(()=>readDocument(new File(['image'],'scan.png')),/Enable English OCR/));
+test('supported local model metadata has distinct IDs and pooling',()=>{
+  assert.notEqual(MODEL_CATALOG.minilm.id,MODEL_CATALOG.bge.id);
+  assert.equal(modelInfo('minilm').pooling,'mean');assert.equal(modelInfo('bge').pooling,'cls');
+  assert.match(modelInfo('bge').prefix,/searching relevant passages/);
+  assert.throws(()=>modelInfo('gemini'),/supported local/);
+});
+test('cosine ranking normalizes vectors and enforces dimensions',()=>{
+  assert.equal(cosine([2,0],[3,0]),1);assert.equal(cosine([0,0],[3,0]),0);
+  assert.throws(()=>cosine([1,0],[1]),/dimensions/);
+  assert.deepEqual(rankVectors([[0,1],[3,0],[-1,0]],[1,0],2),[{i:1,score:1}]);
+});
+test('English OCR recognizes the synthetic scanned image',async()=>{
+  const worker=await createOcrWorker('eng',1,{langPath:fileURLToPath(new URL('./node_modules/@tesseract.js-data/eng/4.0.0_best_int/',import.meta.url)),cacheMethod:'none'});
+  try{
+    const {data}=await worker.recognize(fileURLToPath(new URL('./tests/fixtures/scanned-note.png',import.meta.url)));
+    assert.match(data.text,/observatory codename is Cobalt/);
+    assert.match(data.text,/18 December 2026/);
+  }finally{await worker.terminate();}
 });

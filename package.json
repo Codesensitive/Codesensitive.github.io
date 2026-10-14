@@ -1,1 +1,17 @@
-{"name":"anuj-evidence-portfolio","private":true,"type":"module","scripts":{"start":"node server.mjs","test":"node --test tests.mjs","prepare:pdf":"node scripts/prepare-pdf.mjs"},"dependencies":{"pdfjs-dist":"6.4.299"}}
+{
+  "name": "anuj-evidence-portfolio",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "node server.mjs",
+    "test": "node --test tests.mjs",
+    "prepare:pdf": "node scripts/prepare-pdf.mjs",
+    "prepare:ai": "node scripts/prepare-ai.mjs"
+  },
+  "dependencies": {
+    "@huggingface/transformers": "4.3.1",
+    "@tesseract.js-data/eng": "1.0.0",
+    "pdfjs-dist": "6.4.299",
+    "tesseract.js": "7.0.0"
+  }
+}

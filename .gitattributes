@@ -3,3 +3,5 @@
 *.wasm binary
 *.ttf binary
 *.pfb binary
+*.gz binary
+*.png binary

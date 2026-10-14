@@ -1,1 +1,1 @@
-{"name":"anuj-evidence-portfolio","private":true,"type":"module","scripts":{"start":"node server.mjs","test":"node --test tests.mjs"}}
+{"name":"anuj-evidence-portfolio","private":true,"type":"module","scripts":{"start":"node server.mjs","test":"node --test tests.mjs","prepare:pdf":"node scripts/prepare-pdf.mjs"},"dependencies":{"pdfjs-dist":"6.4.299"}}

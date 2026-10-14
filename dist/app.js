@@ -1,5 +1,5 @@
-import {samples,buildIndex,search,excerpt,evaluate} from './engine.js';
-import {readDocument,validateFile,corpusBytes,MAX_DOCUMENTS,MAX_CORPUS_BYTES} from './documents.js';
+import {samples,buildIndex,search,excerpt,evaluate} from './engine.js?v=20261015-pdf';
+import {readDocument,validateFile,corpusBytes,MAX_DOCUMENTS,MAX_CORPUS_BYTES} from './documents.js?v=20261015-pdf';
 let docs=structuredClone(samples),index,lastTrace=null,uploading=false;
 const $=selector=>document.querySelector(selector);
 const el=(tag,cls,text)=>{const element=document.createElement(tag);if(cls)element.className=cls;if(text!==undefined)element.textContent=text;return element;};

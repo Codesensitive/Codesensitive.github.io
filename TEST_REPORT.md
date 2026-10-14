@@ -18,6 +18,7 @@ Date: 15 October 2026 (India time).
 - Controls disabled while reading; restored in cleanup after success or failure.
 - Decimal-safe sentence boundaries and correct singular/plural passage labels.
 - GitHub Actions runs tests before publishing static assets.
+- First-party JavaScript, module imports and stylesheet URLs are versioned to prevent older cached assets from mixing with the PDF interface.
 
 ## Automated checks
 

@@ -1,5 +1,7 @@
 # PDF upload and Q&A verification
 
+> **Hybrid update:** The current version adds BM25 + MiniLM/BGE RRF fusion and a real labeled four-method retrieval comparison with per-query inspection and JSON export. The automated suite now has 23 passing checks, including rank fusion and evaluation metric regressions. See `HYBRID_RETRIEVAL_GUIDE.md`; the older version-specific counts and scope statements below are historical.
+
 > **Embedding/OCR update:** The current version adds MiniLM/BGE model switching, local vector retrieval, model caching/download links and optional English OCR for scanned PDFs/images. The 17 automated tests pass, including actual OCR of a synthetic scanned image. Local browser tests verified both model activations, a synonym-style vehicle query, corpus reindexing, OCR recognition of a scanned PDF, and its page citation. The older PDF-only scope statement below records the previous version; current limitations are in `SEMANTIC_OCR_GUIDE.md`.
 
 Date: 15 October 2026 (India time).

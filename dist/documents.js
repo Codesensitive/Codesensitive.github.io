@@ -21,7 +21,7 @@ export async function readDocument(file,onProgress=()=>{},options={}){
   validateFile(file);
   const buffer=await file.arrayBuffer();
   const recognize=async image=>{
-    const {recognizeImage}=await import('./ocr.js?v=20261015-ai');
+    const {recognizeImage}=await import('./ocr.js?v=20261015-hybrid');
     return recognizeImage(image,onProgress);
   };
   if(/\.(png|jpe?g)$/i.test(file.name)){

@@ -1,5 +1,5 @@
 import {pipeline,env} from './vendor/transformers/transformers.js';
-import {modelInfo,rankVectors,MODEL_CACHE,MAX_SEMANTIC_CHUNKS} from './models.js?v=20261015-ai';
+import {modelInfo,rankVectors,MODEL_CACHE,MAX_SEMANTIC_CHUNKS} from './models.js?v=20261015-hybrid';
 env.allowLocalModels=false;env.useBrowserCache=true;env.cacheKey=MODEL_CACHE;
 env.backends.onnx.wasm.numThreads=1;
 env.backends.onnx.wasm.proxy=false;

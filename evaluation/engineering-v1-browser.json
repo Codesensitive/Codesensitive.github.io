@@ -1,0 +1,2304 @@
+{
+  "dataset": "engineering-v1",
+  "createdAt": "2026-10-15T00:10:16.953Z",
+  "settings": {
+    "k": 3,
+    "chunkWords": 120,
+    "candidateDepth": 20,
+    "rrfConstant": 60
+  },
+  "documents": [
+    {
+      "id": "network",
+      "name": "network-runbook.txt",
+      "text": "Error ERR_CONNECTION_RESET indicates a connection was unexpectedly closed. Inspect the reverse proxy idle timeout and restart the local connection pool. Request identifier NET-042 belongs to the networking runbook."
+    },
+    {
+      "id": "auth",
+      "name": "authentication.txt",
+      "text": "Error AUTH_403 means access is forbidden. A user must request the required role from the workspace administrator. Password recovery uses an email link so a person who cannot sign in can restore access."
+    },
+    {
+      "id": "recovery",
+      "name": "backup-runbook.txt",
+      "text": "The database backup retention window is fourteen days. A snapshot is stored each night. To recover accidentally deleted records, restore an earlier snapshot into a separate database and copy the missing rows."
+    },
+    {
+      "id": "vehicle",
+      "name": "vehicle-manual.txt",
+      "text": "A motor vehicle requires gasoline to operate. The automobile stores fuel in its tank. A mechanic repairs the engine and transmission. The maintenance interval is six months."
+    },
+    {
+      "id": "privacy",
+      "name": "data-handling.txt",
+      "text": "Document contents remain in browser memory. No uploaded documents are sent to a server. Reloading clears the corpus. Cached model files can persist on the device, but cached model weights do not include uploaded documents."
+    },
+    {
+      "id": "release",
+      "name": "release-plan.txt",
+      "text": "The project codename is Marigold. The release owner is Anuj Yadav. The launch date is 21 November 2026. A failed rollout should be reverted by restoring the previously deployed version."
+    },
+    {
+      "id": "ocr",
+      "name": "scanning-guide.txt",
+      "text": "English optical character recognition reads text from pictures and scanned document pages. Recognition can misread letters and numbers. Check the extracted text against the original image, especially names and dates."
+    },
+    {
+      "id": "retrieval",
+      "name": "retrieval-design.txt",
+      "text": "Hybrid retrieval merges keyword and vector candidate rankings using reciprocal rank fusion. Exact technical identifiers benefit from lexical matching. Paraphrased questions benefit from semantic embeddings. A similarity score is not confidence."
+    }
+  ],
+  "queries": [
+    {
+      "id": "exact-code",
+      "category": "exact",
+      "question": "ERR_CONNECTION_RESET",
+      "relevant": [
+        "network"
+      ]
+    },
+    {
+      "id": "exact-auth",
+      "category": "exact",
+      "question": "AUTH_403",
+      "relevant": [
+        "auth"
+      ]
+    },
+    {
+      "id": "exact-id",
+      "category": "exact",
+      "question": "NET-042",
+      "relevant": [
+        "network"
+      ]
+    },
+    {
+      "id": "exact-name",
+      "category": "exact",
+      "question": "Marigold release owner",
+      "relevant": [
+        "release"
+      ]
+    },
+    {
+      "id": "vehicle-paraphrase",
+      "category": "paraphrase",
+      "question": "What powers the car?",
+      "relevant": [
+        "vehicle"
+      ]
+    },
+    {
+      "id": "recovery-paraphrase",
+      "category": "paraphrase",
+      "question": "How can I get back rows I erased by mistake?",
+      "relevant": [
+        "recovery"
+      ]
+    },
+    {
+      "id": "auth-paraphrase",
+      "category": "paraphrase",
+      "question": "I forgot my login credentials. How do I get into my account again?",
+      "relevant": [
+        "auth"
+      ]
+    },
+    {
+      "id": "ocr-paraphrase",
+      "category": "paraphrase",
+      "question": "Can I turn a photo of printed words into searchable writing?",
+      "relevant": [
+        "ocr"
+      ]
+    },
+    {
+      "id": "privacy-paraphrase",
+      "category": "paraphrase",
+      "question": "Does my uploaded content leave my computer?",
+      "relevant": [
+        "privacy"
+      ]
+    },
+    {
+      "id": "rollback-paraphrase",
+      "category": "paraphrase",
+      "question": "How do I undo an unsuccessful software deployment?",
+      "relevant": [
+        "release"
+      ]
+    },
+    {
+      "id": "retention",
+      "category": "factual",
+      "question": "How long are database backups retained?",
+      "relevant": [
+        "recovery"
+      ]
+    },
+    {
+      "id": "two-sources",
+      "category": "multiple sources",
+      "question": "Which files explain restoring deleted records and reverting a failed rollout?",
+      "relevant": [
+        "recovery",
+        "release"
+      ]
+    },
+    {
+      "id": "no-weather",
+      "category": "no answer",
+      "question": "What is the weather forecast for Tokyo tomorrow?",
+      "relevant": []
+    },
+    {
+      "id": "no-recipe",
+      "category": "no answer",
+      "question": "How do I bake sourdough bread?",
+      "relevant": []
+    },
+    {
+      "id": "no-number",
+      "category": "no answer",
+      "question": "What is the exact annual revenue of this business?",
+      "relevant": []
+    }
+  ],
+  "methods": [
+    {
+      "id": "bm25",
+      "label": "BM25",
+      "rows": [
+        {
+          "queryId": "exact-code",
+          "category": "exact",
+          "question": "ERR_CONNECTION_RESET",
+          "relevant": [
+            "network"
+          ],
+          "results": [
+            {
+              "id": "network:1",
+              "docId": "network",
+              "name": "network-runbook.txt",
+              "number": 1,
+              "page": null,
+              "ocr": false,
+              "text": "Error ERR_CONNECTION_RESET indicates a connection was unexpectedly closed. Inspect the reverse proxy idle timeout and restart the local connection pool. Request identifier NET-042 belongs to the networking runbook.",
+              "score": 6.4559240602909895
+            }
+          ],
+          "metrics": {
+            "answerable": true,
+            "hitAt1": 1,
+            "recallAtK": 1,
+            "reciprocalRank": 1,
+            "falseEvidence": null
+          }
+        },
+        {
+          "queryId": "exact-auth",
+          "category": "exact",
+          "question": "AUTH_403",
+          "relevant": [
+            "auth"
+          ],
+          "results": [
+            {
+              "id": "auth:1",
+              "docId": "auth",
+              "name": "authentication.txt",
+              "number": 1,
+              "page": null,
+              "ocr": false,
+              "text": "Error AUTH_403 means access is forbidden. A user must request the required role from the workspace administrator. Password recovery uses an email link so a person who cannot sign in can restore access.",
+              "score": 3.4397270691710893
+            }
+          ],
+          "metrics": {
+            "answerable": true,
+            "hitAt1": 1,
+            "recallAtK": 1,
+            "reciprocalRank": 1,
+            "falseEvidence": null
+          }
+        },
+        {
+          "queryId": "exact-id",
+          "category": "exact",
+          "question": "NET-042",
+          "relevant": [
+            "network"
+          ],
+          "results": [
+            {
+              "id": "network:1",
+              "docId": "network",
+              "name": "network-runbook.txt",
+              "number": 1,
+              "page": null,
+              "ocr": false,
+              "text": "Error ERR_CONNECTION_RESET indicates a connection was unexpectedly closed. Inspect the reverse proxy idle timeout and restart the local connection pool. Request identifier NET-042 belongs to the networking runbook.",
+              "score": 3.5059287128439887
+            }
+          ],
+          "metrics": {
+            "answerable": true,
+            "hitAt1": 1,
+            "recallAtK": 1,
+            "reciprocalRank": 1,
+            "falseEvidence": null
+          }
+        },
+        {
+          "queryId": "exact-name",
+          "category": "exact",
+          "question": "Marigold release owner",
+          "relevant": [
+            "release"
+          ],
+          "results": [
+            {
+              "id": "release:1",
+              "docId": "release",
+              "name": "release-plan.txt",
+              "number": 1,
+              "page": null,
+              "ocr": false,
+              "text": "The project codename is Marigold. The release owner is Anuj Yadav. The launch date is 21 November 2026. A failed rollout should be reverted by restoring the previously deployed version.",
+              "score": 5.697514906494075
+            }
+          ],
+          "metrics": {
+            "answerable": true,
+            "hitAt1": 1,
+            "recallAtK": 1,
+            "reciprocalRank": 1,
+            "falseEvidence": null
+          }
+        },
+        {
+          "queryId": "vehicle-paraphrase",
+          "category": "paraphrase",
+          "question": "What powers the car?",
+          "relevant": [
+            "vehicle"
+          ],
+          "results": [],
+          "metrics": {
+            "answerable": true,
+            "hitAt1": 0,
+            "recallAtK": 0,
+            "reciprocalRank": 0,
+            "falseEvidence": null
+          }
+        },
+        {
+          "queryId": "recovery-paraphrase",
+          "category": "paraphrase",
+          "question": "How can I get back rows I erased by mistake?",
+          "relevant": [
+            "recovery"
+          ],
+          "results": [
+            {
+              "id": "recovery:1",
+              "docId": "recovery",
+              "name": "backup-runbook.txt",
+              "number": 1,
+              "page": null,
+              "ocr": false,
+              "text": "The database backup retention window is fourteen days. A snapshot is stored each night. To recover accidentally deleted records, restore an earlier snapshot into a separate database and copy the missing rows.",
+              "score": 1.8231414115581543
+            }
+          ],
+          "metrics": {
+            "answerable": true,
+            "hitAt1": 1,
+            "recallAtK": 1,
+            "reciprocalRank": 1,
+            "falseEvidence": null
+          }
+        },
+        {
+          "queryId": "auth-paraphrase",
+          "category": "paraphrase",
+          "question": "I forgot my login credentials. How do I get into my account again?",
+          "relevant": [
+            "auth"
+          ],
+          "results": [],
+          "metrics": {
+            "answerable": true,
+            "hitAt1": 0,
+            "recallAtK": 0,
+            "reciprocalRank": 0,
+            "falseEvidence": null
+          }
+        },
+        {
+          "queryId": "ocr-paraphrase",
+          "category": "paraphrase",
+          "question": "Can I turn a photo of printed words into searchable writing?",
+          "relevant": [
+            "ocr"
+          ],
+          "results": [],
+          "metrics": {
+            "answerable": true,
+            "hitAt1": 0,
+            "recallAtK": 0,
+            "reciprocalRank": 0,
+            "falseEvidence": null
+          }
+        },
+        {
+          "queryId": "privacy-paraphrase",
+          "category": "paraphrase",
+          "question": "Does my uploaded content leave my computer?",
+          "relevant": [
+            "privacy"
+          ],
+          "results": [
+            {
+              "id": "privacy:1",
+              "docId": "privacy",
+              "name": "data-handling.txt",
+              "number": 1,
+              "page": null,
+              "ocr": false,
+              "text": "Document contents remain in browser memory. No uploaded documents are sent to a server. Reloading clears the corpus. Cached model files can persist on the device, but cached model weights do not include uploaded documents.",
+              "score": 2.4519871592352516
+            }
+          ],
+          "metrics": {
+            "answerable": true,
+            "hitAt1": 1,
+            "recallAtK": 1,
+            "reciprocalRank": 1,
+            "falseEvidence": null
+          }
+        },
+        {
+          "queryId": "rollback-paraphrase",
+          "category": "paraphrase",
+          "question": "How do I undo an unsuccessful software deployment?",
+          "relevant": [
+            "release"
+          ],
+          "results": [],
+          "metrics": {
+            "answerable": true,
+            "hitAt1": 0,
+            "recallAtK": 0,
+            "reciprocalRank": 0,
+            "falseEvidence": null
+          }
+        },
+        {
+          "queryId": "retention",
+          "category": "factual",
+          "question": "How long are database backups retained?",
+          "relevant": [
+            "recovery"
+          ],
+          "results": [
+            {
+              "id": "recovery:1",
+              "docId": "recovery",
+              "name": "backup-runbook.txt",
+              "number": 1,
+              "page": null,
+              "ocr": false,
+              "text": "The database backup retention window is fourteen days. A snapshot is stored each night. To recover accidentally deleted records, restore an earlier snapshot into a separate database and copy the missing rows.",
+              "score": 2.5915193271585384
+            }
+          ],
+          "metrics": {
+            "answerable": true,
+            "hitAt1": 1,
+            "recallAtK": 1,
+            "reciprocalRank": 1,
+            "falseEvidence": null
+          }
+        },
+        {
+          "queryId": "two-sources",
+          "category": "multiple sources",
+          "question": "Which files explain restoring deleted records and reverting a failed rollout?",
+          "relevant": [
+            "recovery",
+            "release"
+          ],
+          "results": [
+            {
+              "id": "release:1",
+              "docId": "release",
+              "name": "release-plan.txt",
+              "number": 1,
+              "page": null,
+              "ocr": false,
+              "text": "The project codename is Marigold. The release owner is Anuj Yadav. The launch date is 21 November 2026. A failed rollout should be reverted by restoring the previously deployed version.",
+              "score": 5.697514906494075
+            },
+            {
+              "id": "recovery:1",
+              "docId": "recovery",
+              "name": "backup-runbook.txt",
+              "number": 1,
+              "page": null,
+              "ocr": false,
+              "text": "The database backup retention window is fourteen days. A snapshot is stored each night. To recover accidentally deleted records, restore an earlier snapshot into a separate database and copy the missing rows.",
+              "score": 3.6462828231163087
+            },
+            {
+              "id": "privacy:1",
+              "docId": "privacy",
+              "name": "data-handling.txt",
+              "number": 1,
+              "page": null,
+              "ocr": false,
+              "text": "Document contents remain in browser memory. No uploaded documents are sent to a server. Reloading clears the corpus. Cached model files can persist on the device, but cached model weights do not include uploaded documents.",
+              "score": 1.6879896157978587
+            }
+          ],
+          "metrics": {
+            "answerable": true,
+            "hitAt1": 1,
+            "recallAtK": 1,
+            "reciprocalRank": 1,
+            "falseEvidence": null
+          }
+        },
+        {
+          "queryId": "no-weather",
+          "category": "no answer",
+          "question": "What is the weather forecast for Tokyo tomorrow?",
+          "relevant": [],
+          "results": [],
+          "metrics": {
+            "answerable": false,
+            "hitAt1": null,
+            "recallAtK": null,
+            "reciprocalRank": null,
+            "falseEvidence": 0
+          }
+        },
+        {
+          "queryId": "no-recipe",
+          "category": "no answer",
+          "question": "How do I bake sourdough bread?",
+          "relevant": [],
+          "results": [],
+          "metrics": {
+            "answerable": false,
+            "hitAt1": null,
+            "recallAtK": null,
+            "reciprocalRank": null,
+            "falseEvidence": 0
+          }
+        },
+        {
+          "queryId": "no-number",
+          "category": "no answer",
+          "question": "What is the exact annual revenue of this business?",
+          "relevant": [],
+          "results": [
+            {
+              "id": "retrieval:1",
+              "docId": "retrieval",
+              "name": "retrieval-design.txt",
+              "number": 1,
+              "page": null,
+              "ocr": false,
+              "text": "Hybrid retrieval merges keyword and vector candidate rankings using reciprocal rank fusion. Exact technical identifiers benefit from lexical matching. Paraphrased questions benefit from semantic embeddings. A similarity score is not confidence.",
+              "score": 1.6879896157978587
+            }
+          ],
+          "metrics": {
+            "answerable": false,
+            "hitAt1": null,
+            "recallAtK": null,
+            "reciprocalRank": null,
+            "falseEvidence": 1
+          }
+        }
+      ],
+      "metrics": {
+        "answerableQueries": 12,
+        "unanswerableQueries": 3,
+        "hitAt1": 0.6666666666666666,
+        "recallAt3": 0.6666666666666666,
+        "mrrAt3": 0.6666666666666666,
+        "falseEvidenceRate": 0.3333333333333333
+      }
+    },
+    {
+      "id": "minilm",
+      "label": "MiniLM L6 v2",
+      "model": "Xenova/all-MiniLM-L6-v2",
+      "cutoff": 0.25,
+      "rows": [
+        {
+          "queryId": "exact-code",
+          "category": "exact",
+          "question": "ERR_CONNECTION_RESET",
+          "relevant": [
+            "network"
+          ],
+          "results": [
+            {
+              "id": "network:1",
+              "docId": "network",
+              "name": "network-runbook.txt",
+              "number": 1,
+              "page": null,
+              "ocr": false,
+              "text": "Error ERR_CONNECTION_RESET indicates a connection was unexpectedly closed. Inspect the reverse proxy idle timeout and restart the local connection pool. Request identifier NET-042 belongs to the networking runbook.",
+              "score": 0.6156190215370793
+            },
+            {
+              "id": "auth:1",
+              "docId": "auth",
+              "name": "authentication.txt",
+              "number": 1,
+              "page": null,
+              "ocr": false,
+              "text": "Error AUTH_403 means access is forbidden. A user must request the required role from the workspace administrator. Password recovery uses an email link so a person who cannot sign in can restore access.",
+              "score": 0.29509755289969475
+            }
+          ],
+          "metrics": {
+            "answerable": true,
+            "hitAt1": 1,
+            "recallAtK": 1,
+            "reciprocalRank": 1,
+            "falseEvidence": null
+          }
+        },
+        {
+          "queryId": "exact-auth",
+          "category": "exact",
+          "question": "AUTH_403",
+          "relevant": [
+            "auth"
+          ],
+          "results": [
+            {
+              "id": "auth:1",
+              "docId": "auth",
+              "name": "authentication.txt",
+              "number": 1,
+              "page": null,
+              "ocr": false,
+              "text": "Error AUTH_403 means access is forbidden. A user must request the required role from the workspace administrator. Password recovery uses an email link so a person who cannot sign in can restore access.",
+              "score": 0.5486458375935355
+            }
+          ],
+          "metrics": {
+            "answerable": true,
+            "hitAt1": 1,
+            "recallAtK": 1,
+            "reciprocalRank": 1,
+            "falseEvidence": null
+          }
+        },
+        {
+          "queryId": "exact-id",
+          "category": "exact",
+          "question": "NET-042",
+          "relevant": [
+            "network"
+          ],
+          "results": [
+            {
+              "id": "network:1",
+              "docId": "network",
+              "name": "network-runbook.txt",
+              "number": 1,
+              "page": null,
+              "ocr": false,
+              "text": "Error ERR_CONNECTION_RESET indicates a connection was unexpectedly closed. Inspect the reverse proxy idle timeout and restart the local connection pool. Request identifier NET-042 belongs to the networking runbook.",
+              "score": 0.36716689898970606
+            }
+          ],
+          "metrics": {
+            "answerable": true,
+            "hitAt1": 1,
+            "recallAtK": 1,
+            "reciprocalRank": 1,
+            "falseEvidence": null
+          }
+        },
+        {
+          "queryId": "exact-name",
+          "category": "exact",
+          "question": "Marigold release owner",
+          "relevant": [
+            "release"
+          ],
+          "results": [
+            {
+              "id": "release:1",
+              "docId": "release",
+              "name": "release-plan.txt",
+              "number": 1,
+              "page": null,
+              "ocr": false,
+              "text": "The project codename is Marigold. The release owner is Anuj Yadav. The launch date is 21 November 2026. A failed rollout should be reverted by restoring the previously deployed version.",
+              "score": 0.5947610348432938
+            }
+          ],
+          "metrics": {
+            "answerable": true,
+            "hitAt1": 1,
+            "recallAtK": 1,
+            "reciprocalRank": 1,
+            "falseEvidence": null
+          }
+        },
+        {
+          "queryId": "vehicle-paraphrase",
+          "category": "paraphrase",
+          "question": "What powers the car?",
+          "relevant": [
+            "vehicle"
+          ],
+          "results": [
+            {
+              "id": "vehicle:1",
+              "docId": "vehicle",
+              "name": "vehicle-manual.txt",
+              "number": 1,
+              "page": null,
+              "ocr": false,
+              "text": "A motor vehicle requires gasoline to operate. The automobile stores fuel in its tank. A mechanic repairs the engine and transmission. The maintenance interval is six months.",
+              "score": 0.31392807123766525
+            }
+          ],
+          "metrics": {
+            "answerable": true,
+            "hitAt1": 1,
+            "recallAtK": 1,
+            "reciprocalRank": 1,
+            "falseEvidence": null
+          }
+        },
+        {
+          "queryId": "recovery-paraphrase",
+          "category": "paraphrase",
+          "question": "How can I get back rows I erased by mistake?",
+          "relevant": [
+            "recovery"
+          ],
+          "results": [
+            {
+              "id": "recovery:1",
+              "docId": "recovery",
+              "name": "backup-runbook.txt",
+              "number": 1,
+              "page": null,
+              "ocr": false,
+              "text": "The database backup retention window is fourteen days. A snapshot is stored each night. To recover accidentally deleted records, restore an earlier snapshot into a separate database and copy the missing rows.",
+              "score": 0.5622352894297431
+            }
+          ],
+          "metrics": {
+            "answerable": true,
+            "hitAt1": 1,
+            "recallAtK": 1,
+            "reciprocalRank": 1,
+            "falseEvidence": null
+          }
+        },
+        {
+          "queryId": "auth-paraphrase",
+          "category": "paraphrase",
+          "question": "I forgot my login credentials. How do I get into my account again?",
+          "relevant": [
+            "auth"
+          ],
+          "results": [
+            {
+              "id": "auth:1",
+              "docId": "auth",
+              "name": "authentication.txt",
+              "number": 1,
+              "page": null,
+              "ocr": false,
+              "text": "Error AUTH_403 means access is forbidden. A user must request the required role from the workspace administrator. Password recovery uses an email link so a person who cannot sign in can restore access.",
+              "score": 0.41322232671213416
+            },
+            {
+              "id": "recovery:1",
+              "docId": "recovery",
+              "name": "backup-runbook.txt",
+              "number": 1,
+              "page": null,
+              "ocr": false,
+              "text": "The database backup retention window is fourteen days. A snapshot is stored each night. To recover accidentally deleted records, restore an earlier snapshot into a separate database and copy the missing rows.",
+              "score": 0.2581266917146367
+            }
+          ],
+          "metrics": {
+            "answerable": true,
+            "hitAt1": 1,
+            "recallAtK": 1,
+            "reciprocalRank": 1,
+            "falseEvidence": null
+          }
+        },
+        {
+          "queryId": "ocr-paraphrase",
+          "category": "paraphrase",
+          "question": "Can I turn a photo of printed words into searchable writing?",
+          "relevant": [
+            "ocr"
+          ],
+          "results": [
+            {
+              "id": "ocr:1",
+              "docId": "ocr",
+              "name": "scanning-guide.txt",
+              "number": 1,
+              "page": null,
+              "ocr": false,
+              "text": "English optical character recognition reads text from pictures and scanned document pages. Recognition can misread letters and numbers. Check the extracted text against the original image, especially names and dates.",
+              "score": 0.4738227444381014
+            }
+          ],
+          "metrics": {
+            "answerable": true,
+            "hitAt1": 1,
+            "recallAtK": 1,
+            "reciprocalRank": 1,
+            "falseEvidence": null
+          }
+        },
+        {
+          "queryId": "privacy-paraphrase",
+          "category": "paraphrase",
+          "question": "Does my uploaded content leave my computer?",
+          "relevant": [
+            "privacy"
+          ],
+          "results": [
+            {
+              "id": "privacy:1",
+              "docId": "privacy",
+              "name": "data-handling.txt",
+              "number": 1,
+              "page": null,
+              "ocr": false,
+              "text": "Document contents remain in browser memory. No uploaded documents are sent to a server. Reloading clears the corpus. Cached model files can persist on the device, but cached model weights do not include uploaded documents.",
+              "score": 0.5841538501155209
+            }
+          ],
+          "metrics": {
+            "answerable": true,
+            "hitAt1": 1,
+            "recallAtK": 1,
+            "reciprocalRank": 1,
+            "falseEvidence": null
+          }
+        },
+        {
+          "queryId": "rollback-paraphrase",
+          "category": "paraphrase",
+          "question": "How do I undo an unsuccessful software deployment?",
+          "relevant": [
+            "release"
+          ],
+          "results": [
+            {
+              "id": "release:1",
+              "docId": "release",
+              "name": "release-plan.txt",
+              "number": 1,
+              "page": null,
+              "ocr": false,
+              "text": "The project codename is Marigold. The release owner is Anuj Yadav. The launch date is 21 November 2026. A failed rollout should be reverted by restoring the previously deployed version.",
+              "score": 0.31833721630654216
+            },
+            {
+              "id": "recovery:1",
+              "docId": "recovery",
+              "name": "backup-runbook.txt",
+              "number": 1,
+              "page": null,
+              "ocr": false,
+              "text": "The database backup retention window is fourteen days. A snapshot is stored each night. To recover accidentally deleted records, restore an earlier snapshot into a separate database and copy the missing rows.",
+              "score": 0.29418114075974605
+            }
+          ],
+          "metrics": {
+            "answerable": true,
+            "hitAt1": 1,
+            "recallAtK": 1,
+            "reciprocalRank": 1,
+            "falseEvidence": null
+          }
+        },
+        {
+          "queryId": "retention",
+          "category": "factual",
+          "question": "How long are database backups retained?",
+          "relevant": [
+            "recovery"
+          ],
+          "results": [
+            {
+              "id": "recovery:1",
+              "docId": "recovery",
+              "name": "backup-runbook.txt",
+              "number": 1,
+              "page": null,
+              "ocr": false,
+              "text": "The database backup retention window is fourteen days. A snapshot is stored each night. To recover accidentally deleted records, restore an earlier snapshot into a separate database and copy the missing rows.",
+              "score": 0.6787544314406286
+            },
+            {
+              "id": "privacy:1",
+              "docId": "privacy",
+              "name": "data-handling.txt",
+              "number": 1,
+              "page": null,
+              "ocr": false,
+              "text": "Document contents remain in browser memory. No uploaded documents are sent to a server. Reloading clears the corpus. Cached model files can persist on the device, but cached model weights do not include uploaded documents.",
+              "score": 0.27698282209548614
+            }
+          ],
+          "metrics": {
+            "answerable": true,
+            "hitAt1": 1,
+            "recallAtK": 1,
+            "reciprocalRank": 1,
+            "falseEvidence": null
+          }
+        },
+        {
+          "queryId": "two-sources",
+          "category": "multiple sources",
+          "question": "Which files explain restoring deleted records and reverting a failed rollout?",
+          "relevant": [
+            "recovery",
+            "release"
+          ],
+          "results": [
+            {
+              "id": "recovery:1",
+              "docId": "recovery",
+              "name": "backup-runbook.txt",
+              "number": 1,
+              "page": null,
+              "ocr": false,
+              "text": "The database backup retention window is fourteen days. A snapshot is stored each night. To recover accidentally deleted records, restore an earlier snapshot into a separate database and copy the missing rows.",
+              "score": 0.5652710109865673
+            },
+            {
+              "id": "auth:1",
+              "docId": "auth",
+              "name": "authentication.txt",
+              "number": 1,
+              "page": null,
+              "ocr": false,
+              "text": "Error AUTH_403 means access is forbidden. A user must request the required role from the workspace administrator. Password recovery uses an email link so a person who cannot sign in can restore access.",
+              "score": 0.272906659182839
+            }
+          ],
+          "metrics": {
+            "answerable": true,
+            "hitAt1": 1,
+            "recallAtK": 0.5,
+            "reciprocalRank": 1,
+            "falseEvidence": null
+          }
+        },
+        {
+          "queryId": "no-weather",
+          "category": "no answer",
+          "question": "What is the weather forecast for Tokyo tomorrow?",
+          "relevant": [],
+          "results": [],
+          "metrics": {
+            "answerable": false,
+            "hitAt1": null,
+            "recallAtK": null,
+            "reciprocalRank": null,
+            "falseEvidence": 0
+          }
+        },
+        {
+          "queryId": "no-recipe",
+          "category": "no answer",
+          "question": "How do I bake sourdough bread?",
+          "relevant": [],
+          "results": [],
+          "metrics": {
+            "answerable": false,
+            "hitAt1": null,
+            "recallAtK": null,
+            "reciprocalRank": null,
+            "falseEvidence": 0
+          }
+        },
+        {
+          "queryId": "no-number",
+          "category": "no answer",
+          "question": "What is the exact annual revenue of this business?",
+          "relevant": [],
+          "results": [],
+          "metrics": {
+            "answerable": false,
+            "hitAt1": null,
+            "recallAtK": null,
+            "reciprocalRank": null,
+            "falseEvidence": 0
+          }
+        }
+      ],
+      "metrics": {
+        "answerableQueries": 12,
+        "unanswerableQueries": 3,
+        "hitAt1": 1,
+        "recallAt3": 0.9583333333333334,
+        "mrrAt3": 1,
+        "falseEvidenceRate": 0
+      }
+    },
+    {
+      "id": "bge",
+      "label": "BGE Small English v1.5",
+      "model": "Xenova/bge-small-en-v1.5",
+      "cutoff": 0.5,
+      "rows": [
+        {
+          "queryId": "exact-code",
+          "category": "exact",
+          "question": "ERR_CONNECTION_RESET",
+          "relevant": [
+            "network"
+          ],
+          "results": [
+            {
+              "id": "network:1",
+              "docId": "network",
+              "name": "network-runbook.txt",
+              "number": 1,
+              "page": null,
+              "ocr": false,
+              "text": "Error ERR_CONNECTION_RESET indicates a connection was unexpectedly closed. Inspect the reverse proxy idle timeout and restart the local connection pool. Request identifier NET-042 belongs to the networking runbook.",
+              "score": 0.816626139635462
+            },
+            {
+              "id": "auth:1",
+              "docId": "auth",
+              "name": "authentication.txt",
+              "number": 1,
+              "page": null,
+              "ocr": false,
+              "text": "Error AUTH_403 means access is forbidden. A user must request the required role from the workspace administrator. Password recovery uses an email link so a person who cannot sign in can restore access.",
+              "score": 0.5952870547119059
+            },
+            {
+              "id": "retrieval:1",
+              "docId": "retrieval",
+              "name": "retrieval-design.txt",
+              "number": 1,
+              "page": null,
+              "ocr": false,
+              "text": "Hybrid retrieval merges keyword and vector candidate rankings using reciprocal rank fusion. Exact technical identifiers benefit from lexical matching. Paraphrased questions benefit from semantic embeddings. A similarity score is not confidence.",
+              "score": 0.5627977936618502
+            }
+          ],
+          "metrics": {
+            "answerable": true,
+            "hitAt1": 1,
+            "recallAtK": 1,
+            "reciprocalRank": 1,
+            "falseEvidence": null
+          }
+        },
+        {
+          "queryId": "exact-auth",
+          "category": "exact",
+          "question": "AUTH_403",
+          "relevant": [
+            "auth"
+          ],
+          "results": [
+            {
+              "id": "auth:1",
+              "docId": "auth",
+              "name": "authentication.txt",
+              "number": 1,
+              "page": null,
+              "ocr": false,
+              "text": "Error AUTH_403 means access is forbidden. A user must request the required role from the workspace administrator. Password recovery uses an email link so a person who cannot sign in can restore access.",
+              "score": 0.8354647286860382
+            },
+            {
+              "id": "release:1",
+              "docId": "release",
+              "name": "release-plan.txt",
+              "number": 1,
+              "page": null,
+              "ocr": false,
+              "text": "The project codename is Marigold. The release owner is Anuj Yadav. The launch date is 21 November 2026. A failed rollout should be reverted by restoring the previously deployed version.",
+              "score": 0.5456004313541756
+            },
+            {
+              "id": "network:1",
+              "docId": "network",
+              "name": "network-runbook.txt",
+              "number": 1,
+              "page": null,
+              "ocr": false,
+              "text": "Error ERR_CONNECTION_RESET indicates a connection was unexpectedly closed. Inspect the reverse proxy idle timeout and restart the local connection pool. Request identifier NET-042 belongs to the networking runbook.",
+              "score": 0.5249855472163653
+            }
+          ],
+          "metrics": {
+            "answerable": true,
+            "hitAt1": 1,
+            "recallAtK": 1,
+            "reciprocalRank": 1,
+            "falseEvidence": null
+          }
+        },
+        {
+          "queryId": "exact-id",
+          "category": "exact",
+          "question": "NET-042",
+          "relevant": [
+            "network"
+          ],
+          "results": [
+            {
+              "id": "network:1",
+              "docId": "network",
+              "name": "network-runbook.txt",
+              "number": 1,
+              "page": null,
+              "ocr": false,
+              "text": "Error ERR_CONNECTION_RESET indicates a connection was unexpectedly closed. Inspect the reverse proxy idle timeout and restart the local connection pool. Request identifier NET-042 belongs to the networking runbook.",
+              "score": 0.6529125902772792
+            },
+            {
+              "id": "release:1",
+              "docId": "release",
+              "name": "release-plan.txt",
+              "number": 1,
+              "page": null,
+              "ocr": false,
+              "text": "The project codename is Marigold. The release owner is Anuj Yadav. The launch date is 21 November 2026. A failed rollout should be reverted by restoring the previously deployed version.",
+              "score": 0.5450936088353043
+            },
+            {
+              "id": "privacy:1",
+              "docId": "privacy",
+              "name": "data-handling.txt",
+              "number": 1,
+              "page": null,
+              "ocr": false,
+              "text": "Document contents remain in browser memory. No uploaded documents are sent to a server. Reloading clears the corpus. Cached model files can persist on the device, but cached model weights do not include uploaded documents.",
+              "score": 0.5241073807436268
+            }
+          ],
+          "metrics": {
+            "answerable": true,
+            "hitAt1": 1,
+            "recallAtK": 1,
+            "reciprocalRank": 1,
+            "falseEvidence": null
+          }
+        },
+        {
+          "queryId": "exact-name",
+          "category": "exact",
+          "question": "Marigold release owner",
+          "relevant": [
+            "release"
+          ],
+          "results": [
+            {
+              "id": "release:1",
+              "docId": "release",
+              "name": "release-plan.txt",
+              "number": 1,
+              "page": null,
+              "ocr": false,
+              "text": "The project codename is Marigold. The release owner is Anuj Yadav. The launch date is 21 November 2026. A failed rollout should be reverted by restoring the previously deployed version.",
+              "score": 0.7370861762754549
+            }
+          ],
+          "metrics": {
+            "answerable": true,
+            "hitAt1": 1,
+            "recallAtK": 1,
+            "reciprocalRank": 1,
+            "falseEvidence": null
+          }
+        },
+        {
+          "queryId": "vehicle-paraphrase",
+          "category": "paraphrase",
+          "question": "What powers the car?",
+          "relevant": [
+            "vehicle"
+          ],
+          "results": [
+            {
+              "id": "vehicle:1",
+              "docId": "vehicle",
+              "name": "vehicle-manual.txt",
+              "number": 1,
+              "page": null,
+              "ocr": false,
+              "text": "A motor vehicle requires gasoline to operate. The automobile stores fuel in its tank. A mechanic repairs the engine and transmission. The maintenance interval is six months.",
+              "score": 0.6275638926531643
+            }
+          ],
+          "metrics": {
+            "answerable": true,
+            "hitAt1": 1,
+            "recallAtK": 1,
+            "reciprocalRank": 1,
+            "falseEvidence": null
+          }
+        },
+        {
+          "queryId": "recovery-paraphrase",
+          "category": "paraphrase",
+          "question": "How can I get back rows I erased by mistake?",
+          "relevant": [
+            "recovery"
+          ],
+          "results": [
+            {
+              "id": "recovery:1",
+              "docId": "recovery",
+              "name": "backup-runbook.txt",
+              "number": 1,
+              "page": null,
+              "ocr": false,
+              "text": "The database backup retention window is fourteen days. A snapshot is stored each night. To recover accidentally deleted records, restore an earlier snapshot into a separate database and copy the missing rows.",
+              "score": 0.717437168613239
+            },
+            {
+              "id": "network:1",
+              "docId": "network",
+              "name": "network-runbook.txt",
+              "number": 1,
+              "page": null,
+              "ocr": false,
+              "text": "Error ERR_CONNECTION_RESET indicates a connection was unexpectedly closed. Inspect the reverse proxy idle timeout and restart the local connection pool. Request identifier NET-042 belongs to the networking runbook.",
+              "score": 0.6105910903696495
+            },
+            {
+              "id": "ocr:1",
+              "docId": "ocr",
+              "name": "scanning-guide.txt",
+              "number": 1,
+              "page": null,
+              "ocr": false,
+              "text": "English optical character recognition reads text from pictures and scanned document pages. Recognition can misread letters and numbers. Check the extracted text against the original image, especially names and dates.",
+              "score": 0.591502004249513
+            }
+          ],
+          "metrics": {
+            "answerable": true,
+            "hitAt1": 1,
+            "recallAtK": 1,
+            "reciprocalRank": 1,
+            "falseEvidence": null
+          }
+        },
+        {
+          "queryId": "auth-paraphrase",
+          "category": "paraphrase",
+          "question": "I forgot my login credentials. How do I get into my account again?",
+          "relevant": [
+            "auth"
+          ],
+          "results": [
+            {
+              "id": "auth:1",
+              "docId": "auth",
+              "name": "authentication.txt",
+              "number": 1,
+              "page": null,
+              "ocr": false,
+              "text": "Error AUTH_403 means access is forbidden. A user must request the required role from the workspace administrator. Password recovery uses an email link so a person who cannot sign in can restore access.",
+              "score": 0.6154347654587989
+            },
+            {
+              "id": "network:1",
+              "docId": "network",
+              "name": "network-runbook.txt",
+              "number": 1,
+              "page": null,
+              "ocr": false,
+              "text": "Error ERR_CONNECTION_RESET indicates a connection was unexpectedly closed. Inspect the reverse proxy idle timeout and restart the local connection pool. Request identifier NET-042 belongs to the networking runbook.",
+              "score": 0.5551509803439932
+            },
+            {
+              "id": "recovery:1",
+              "docId": "recovery",
+              "name": "backup-runbook.txt",
+              "number": 1,
+              "page": null,
+              "ocr": false,
+              "text": "The database backup retention window is fourteen days. A snapshot is stored each night. To recover accidentally deleted records, restore an earlier snapshot into a separate database and copy the missing rows.",
+              "score": 0.545663428026123
+            }
+          ],
+          "metrics": {
+            "answerable": true,
+            "hitAt1": 1,
+            "recallAtK": 1,
+            "reciprocalRank": 1,
+            "falseEvidence": null
+          }
+        },
+        {
+          "queryId": "ocr-paraphrase",
+          "category": "paraphrase",
+          "question": "Can I turn a photo of printed words into searchable writing?",
+          "relevant": [
+            "ocr"
+          ],
+          "results": [
+            {
+              "id": "ocr:1",
+              "docId": "ocr",
+              "name": "scanning-guide.txt",
+              "number": 1,
+              "page": null,
+              "ocr": false,
+              "text": "English optical character recognition reads text from pictures and scanned document pages. Recognition can misread letters and numbers. Check the extracted text against the original image, especially names and dates.",
+              "score": 0.6629436239977657
+            },
+            {
+              "id": "retrieval:1",
+              "docId": "retrieval",
+              "name": "retrieval-design.txt",
+              "number": 1,
+              "page": null,
+              "ocr": false,
+              "text": "Hybrid retrieval merges keyword and vector candidate rankings using reciprocal rank fusion. Exact technical identifiers benefit from lexical matching. Paraphrased questions benefit from semantic embeddings. A similarity score is not confidence.",
+              "score": 0.5698658350201028
+            },
+            {
+              "id": "privacy:1",
+              "docId": "privacy",
+              "name": "data-handling.txt",
+              "number": 1,
+              "page": null,
+              "ocr": false,
+              "text": "Document contents remain in browser memory. No uploaded documents are sent to a server. Reloading clears the corpus. Cached model files can persist on the device, but cached model weights do not include uploaded documents.",
+              "score": 0.5298797219480039
+            }
+          ],
+          "metrics": {
+            "answerable": true,
+            "hitAt1": 1,
+            "recallAtK": 1,
+            "reciprocalRank": 1,
+            "falseEvidence": null
+          }
+        },
+        {
+          "queryId": "privacy-paraphrase",
+          "category": "paraphrase",
+          "question": "Does my uploaded content leave my computer?",
+          "relevant": [
+            "privacy"
+          ],
+          "results": [
+            {
+              "id": "privacy:1",
+              "docId": "privacy",
+              "name": "data-handling.txt",
+              "number": 1,
+              "page": null,
+              "ocr": false,
+              "text": "Document contents remain in browser memory. No uploaded documents are sent to a server. Reloading clears the corpus. Cached model files can persist on the device, but cached model weights do not include uploaded documents.",
+              "score": 0.7432971206809957
+            },
+            {
+              "id": "recovery:1",
+              "docId": "recovery",
+              "name": "backup-runbook.txt",
+              "number": 1,
+              "page": null,
+              "ocr": false,
+              "text": "The database backup retention window is fourteen days. A snapshot is stored each night. To recover accidentally deleted records, restore an earlier snapshot into a separate database and copy the missing rows.",
+              "score": 0.6067417918238989
+            },
+            {
+              "id": "auth:1",
+              "docId": "auth",
+              "name": "authentication.txt",
+              "number": 1,
+              "page": null,
+              "ocr": false,
+              "text": "Error AUTH_403 means access is forbidden. A user must request the required role from the workspace administrator. Password recovery uses an email link so a person who cannot sign in can restore access.",
+              "score": 0.506285327876619
+            }
+          ],
+          "metrics": {
+            "answerable": true,
+            "hitAt1": 1,
+            "recallAtK": 1,
+            "reciprocalRank": 1,
+            "falseEvidence": null
+          }
+        },
+        {
+          "queryId": "rollback-paraphrase",
+          "category": "paraphrase",
+          "question": "How do I undo an unsuccessful software deployment?",
+          "relevant": [
+            "release"
+          ],
+          "results": [
+            {
+              "id": "network:1",
+              "docId": "network",
+              "name": "network-runbook.txt",
+              "number": 1,
+              "page": null,
+              "ocr": false,
+              "text": "Error ERR_CONNECTION_RESET indicates a connection was unexpectedly closed. Inspect the reverse proxy idle timeout and restart the local connection pool. Request identifier NET-042 belongs to the networking runbook.",
+              "score": 0.6223063684221005
+            },
+            {
+              "id": "release:1",
+              "docId": "release",
+              "name": "release-plan.txt",
+              "number": 1,
+              "page": null,
+              "ocr": false,
+              "text": "The project codename is Marigold. The release owner is Anuj Yadav. The launch date is 21 November 2026. A failed rollout should be reverted by restoring the previously deployed version.",
+              "score": 0.6189622125242552
+            },
+            {
+              "id": "recovery:1",
+              "docId": "recovery",
+              "name": "backup-runbook.txt",
+              "number": 1,
+              "page": null,
+              "ocr": false,
+              "text": "The database backup retention window is fourteen days. A snapshot is stored each night. To recover accidentally deleted records, restore an earlier snapshot into a separate database and copy the missing rows.",
+              "score": 0.5984388921389241
+            }
+          ],
+          "metrics": {
+            "answerable": true,
+            "hitAt1": 0,
+            "recallAtK": 1,
+            "reciprocalRank": 0.5,
+            "falseEvidence": null
+          }
+        },
+        {
+          "queryId": "retention",
+          "category": "factual",
+          "question": "How long are database backups retained?",
+          "relevant": [
+            "recovery"
+          ],
+          "results": [
+            {
+              "id": "recovery:1",
+              "docId": "recovery",
+              "name": "backup-runbook.txt",
+              "number": 1,
+              "page": null,
+              "ocr": false,
+              "text": "The database backup retention window is fourteen days. A snapshot is stored each night. To recover accidentally deleted records, restore an earlier snapshot into a separate database and copy the missing rows.",
+              "score": 0.8613797609387157
+            },
+            {
+              "id": "privacy:1",
+              "docId": "privacy",
+              "name": "data-handling.txt",
+              "number": 1,
+              "page": null,
+              "ocr": false,
+              "text": "Document contents remain in browser memory. No uploaded documents are sent to a server. Reloading clears the corpus. Cached model files can persist on the device, but cached model weights do not include uploaded documents.",
+              "score": 0.6662993878730467
+            },
+            {
+              "id": "release:1",
+              "docId": "release",
+              "name": "release-plan.txt",
+              "number": 1,
+              "page": null,
+              "ocr": false,
+              "text": "The project codename is Marigold. The release owner is Anuj Yadav. The launch date is 21 November 2026. A failed rollout should be reverted by restoring the previously deployed version.",
+              "score": 0.5644460578889998
+            }
+          ],
+          "metrics": {
+            "answerable": true,
+            "hitAt1": 1,
+            "recallAtK": 1,
+            "reciprocalRank": 1,
+            "falseEvidence": null
+          }
+        },
+        {
+          "queryId": "two-sources",
+          "category": "multiple sources",
+          "question": "Which files explain restoring deleted records and reverting a failed rollout?",
+          "relevant": [
+            "recovery",
+            "release"
+          ],
+          "results": [
+            {
+              "id": "recovery:1",
+              "docId": "recovery",
+              "name": "backup-runbook.txt",
+              "number": 1,
+              "page": null,
+              "ocr": false,
+              "text": "The database backup retention window is fourteen days. A snapshot is stored each night. To recover accidentally deleted records, restore an earlier snapshot into a separate database and copy the missing rows.",
+              "score": 0.7354018599669034
+            },
+            {
+              "id": "network:1",
+              "docId": "network",
+              "name": "network-runbook.txt",
+              "number": 1,
+              "page": null,
+              "ocr": false,
+              "text": "Error ERR_CONNECTION_RESET indicates a connection was unexpectedly closed. Inspect the reverse proxy idle timeout and restart the local connection pool. Request identifier NET-042 belongs to the networking runbook.",
+              "score": 0.6049587551006049
+            },
+            {
+              "id": "privacy:1",
+              "docId": "privacy",
+              "name": "data-handling.txt",
+              "number": 1,
+              "page": null,
+              "ocr": false,
+              "text": "Document contents remain in browser memory. No uploaded documents are sent to a server. Reloading clears the corpus. Cached model files can persist on the device, but cached model weights do not include uploaded documents.",
+              "score": 0.6004240720483944
+            }
+          ],
+          "metrics": {
+            "answerable": true,
+            "hitAt1": 1,
+            "recallAtK": 0.5,
+            "reciprocalRank": 1,
+            "falseEvidence": null
+          }
+        },
+        {
+          "queryId": "no-weather",
+          "category": "no answer",
+          "question": "What is the weather forecast for Tokyo tomorrow?",
+          "relevant": [],
+          "results": [],
+          "metrics": {
+            "answerable": false,
+            "hitAt1": null,
+            "recallAtK": null,
+            "reciprocalRank": null,
+            "falseEvidence": 0
+          }
+        },
+        {
+          "queryId": "no-recipe",
+          "category": "no answer",
+          "question": "How do I bake sourdough bread?",
+          "relevant": [],
+          "results": [],
+          "metrics": {
+            "answerable": false,
+            "hitAt1": null,
+            "recallAtK": null,
+            "reciprocalRank": null,
+            "falseEvidence": 0
+          }
+        },
+        {
+          "queryId": "no-number",
+          "category": "no answer",
+          "question": "What is the exact annual revenue of this business?",
+          "relevant": [],
+          "results": [
+            {
+              "id": "release:1",
+              "docId": "release",
+              "name": "release-plan.txt",
+              "number": 1,
+              "page": null,
+              "ocr": false,
+              "text": "The project codename is Marigold. The release owner is Anuj Yadav. The launch date is 21 November 2026. A failed rollout should be reverted by restoring the previously deployed version.",
+              "score": 0.5217041857495304
+            }
+          ],
+          "metrics": {
+            "answerable": false,
+            "hitAt1": null,
+            "recallAtK": null,
+            "reciprocalRank": null,
+            "falseEvidence": 1
+          }
+        }
+      ],
+      "metrics": {
+        "answerableQueries": 12,
+        "unanswerableQueries": 3,
+        "hitAt1": 0.9166666666666666,
+        "recallAt3": 0.9583333333333334,
+        "mrrAt3": 0.9583333333333334,
+        "falseEvidenceRate": 0.3333333333333333
+      }
+    },
+    {
+      "id": "hybrid-bge",
+      "label": "Hybrid · BM25 + BGE",
+      "rows": [
+        {
+          "queryId": "exact-code",
+          "category": "exact",
+          "question": "ERR_CONNECTION_RESET",
+          "relevant": [
+            "network"
+          ],
+          "results": [
+            {
+              "id": "network:1",
+              "docId": "network",
+              "name": "network-runbook.txt",
+              "number": 1,
+              "page": null,
+              "ocr": false,
+              "text": "Error ERR_CONNECTION_RESET indicates a connection was unexpectedly closed. Inspect the reverse proxy idle timeout and restart the local connection pool. Request identifier NET-042 belongs to the networking runbook.",
+              "score": 0.03278688524590164,
+              "lexicalRank": 1,
+              "semanticRank": 1,
+              "bm25Score": 6.4559240602909895,
+              "cosineScore": 0.816626139635462
+            },
+            {
+              "id": "auth:1",
+              "docId": "auth",
+              "name": "authentication.txt",
+              "number": 1,
+              "page": null,
+              "ocr": false,
+              "text": "Error AUTH_403 means access is forbidden. A user must request the required role from the workspace administrator. Password recovery uses an email link so a person who cannot sign in can restore access.",
+              "score": 0.016129032258064516,
+              "lexicalRank": null,
+              "semanticRank": 2,
+              "bm25Score": null,
+              "cosineScore": 0.5952870547119059
+            },
+            {
+              "id": "retrieval:1",
+              "docId": "retrieval",
+              "name": "retrieval-design.txt",
+              "number": 1,
+              "page": null,
+              "ocr": false,
+              "text": "Hybrid retrieval merges keyword and vector candidate rankings using reciprocal rank fusion. Exact technical identifiers benefit from lexical matching. Paraphrased questions benefit from semantic embeddings. A similarity score is not confidence.",
+              "score": 0.015873015873015872,
+              "lexicalRank": null,
+              "semanticRank": 3,
+              "bm25Score": null,
+              "cosineScore": 0.5627977936618502
+            }
+          ],
+          "metrics": {
+            "answerable": true,
+            "hitAt1": 1,
+            "recallAtK": 1,
+            "reciprocalRank": 1,
+            "falseEvidence": null
+          }
+        },
+        {
+          "queryId": "exact-auth",
+          "category": "exact",
+          "question": "AUTH_403",
+          "relevant": [
+            "auth"
+          ],
+          "results": [
+            {
+              "id": "auth:1",
+              "docId": "auth",
+              "name": "authentication.txt",
+              "number": 1,
+              "page": null,
+              "ocr": false,
+              "text": "Error AUTH_403 means access is forbidden. A user must request the required role from the workspace administrator. Password recovery uses an email link so a person who cannot sign in can restore access.",
+              "score": 0.03278688524590164,
+              "lexicalRank": 1,
+              "semanticRank": 1,
+              "bm25Score": 3.4397270691710893,
+              "cosineScore": 0.8354647286860382
+            },
+            {
+              "id": "release:1",
+              "docId": "release",
+              "name": "release-plan.txt",
+              "number": 1,
+              "page": null,
+              "ocr": false,
+              "text": "The project codename is Marigold. The release owner is Anuj Yadav. The launch date is 21 November 2026. A failed rollout should be reverted by restoring the previously deployed version.",
+              "score": 0.016129032258064516,
+              "lexicalRank": null,
+              "semanticRank": 2,
+              "bm25Score": null,
+              "cosineScore": 0.5456004313541756
+            },
+            {
+              "id": "network:1",
+              "docId": "network",
+              "name": "network-runbook.txt",
+              "number": 1,
+              "page": null,
+              "ocr": false,
+              "text": "Error ERR_CONNECTION_RESET indicates a connection was unexpectedly closed. Inspect the reverse proxy idle timeout and restart the local connection pool. Request identifier NET-042 belongs to the networking runbook.",
+              "score": 0.015873015873015872,
+              "lexicalRank": null,
+              "semanticRank": 3,
+              "bm25Score": null,
+              "cosineScore": 0.5249855472163653
+            }
+          ],
+          "metrics": {
+            "answerable": true,
+            "hitAt1": 1,
+            "recallAtK": 1,
+            "reciprocalRank": 1,
+            "falseEvidence": null
+          }
+        },
+        {
+          "queryId": "exact-id",
+          "category": "exact",
+          "question": "NET-042",
+          "relevant": [
+            "network"
+          ],
+          "results": [
+            {
+              "id": "network:1",
+              "docId": "network",
+              "name": "network-runbook.txt",
+              "number": 1,
+              "page": null,
+              "ocr": false,
+              "text": "Error ERR_CONNECTION_RESET indicates a connection was unexpectedly closed. Inspect the reverse proxy idle timeout and restart the local connection pool. Request identifier NET-042 belongs to the networking runbook.",
+              "score": 0.03278688524590164,
+              "lexicalRank": 1,
+              "semanticRank": 1,
+              "bm25Score": 3.5059287128439887,
+              "cosineScore": 0.6529125902772792
+            },
+            {
+              "id": "release:1",
+              "docId": "release",
+              "name": "release-plan.txt",
+              "number": 1,
+              "page": null,
+              "ocr": false,
+              "text": "The project codename is Marigold. The release owner is Anuj Yadav. The launch date is 21 November 2026. A failed rollout should be reverted by restoring the previously deployed version.",
+              "score": 0.016129032258064516,
+              "lexicalRank": null,
+              "semanticRank": 2,
+              "bm25Score": null,
+              "cosineScore": 0.5450936088353043
+            },
+            {
+              "id": "privacy:1",
+              "docId": "privacy",
+              "name": "data-handling.txt",
+              "number": 1,
+              "page": null,
+              "ocr": false,
+              "text": "Document contents remain in browser memory. No uploaded documents are sent to a server. Reloading clears the corpus. Cached model files can persist on the device, but cached model weights do not include uploaded documents.",
+              "score": 0.015873015873015872,
+              "lexicalRank": null,
+              "semanticRank": 3,
+              "bm25Score": null,
+              "cosineScore": 0.5241073807436268
+            }
+          ],
+          "metrics": {
+            "answerable": true,
+            "hitAt1": 1,
+            "recallAtK": 1,
+            "reciprocalRank": 1,
+            "falseEvidence": null
+          }
+        },
+        {
+          "queryId": "exact-name",
+          "category": "exact",
+          "question": "Marigold release owner",
+          "relevant": [
+            "release"
+          ],
+          "results": [
+            {
+              "id": "release:1",
+              "docId": "release",
+              "name": "release-plan.txt",
+              "number": 1,
+              "page": null,
+              "ocr": false,
+              "text": "The project codename is Marigold. The release owner is Anuj Yadav. The launch date is 21 November 2026. A failed rollout should be reverted by restoring the previously deployed version.",
+              "score": 0.03278688524590164,
+              "lexicalRank": 1,
+              "semanticRank": 1,
+              "bm25Score": 5.697514906494075,
+              "cosineScore": 0.7370861762754549
+            }
+          ],
+          "metrics": {
+            "answerable": true,
+            "hitAt1": 1,
+            "recallAtK": 1,
+            "reciprocalRank": 1,
+            "falseEvidence": null
+          }
+        },
+        {
+          "queryId": "vehicle-paraphrase",
+          "category": "paraphrase",
+          "question": "What powers the car?",
+          "relevant": [
+            "vehicle"
+          ],
+          "results": [
+            {
+              "id": "vehicle:1",
+              "docId": "vehicle",
+              "name": "vehicle-manual.txt",
+              "number": 1,
+              "page": null,
+              "ocr": false,
+              "text": "A motor vehicle requires gasoline to operate. The automobile stores fuel in its tank. A mechanic repairs the engine and transmission. The maintenance interval is six months.",
+              "score": 0.01639344262295082,
+              "lexicalRank": null,
+              "semanticRank": 1,
+              "bm25Score": null,
+              "cosineScore": 0.6275638926531643
+            }
+          ],
+          "metrics": {
+            "answerable": true,
+            "hitAt1": 1,
+            "recallAtK": 1,
+            "reciprocalRank": 1,
+            "falseEvidence": null
+          }
+        },
+        {
+          "queryId": "recovery-paraphrase",
+          "category": "paraphrase",
+          "question": "How can I get back rows I erased by mistake?",
+          "relevant": [
+            "recovery"
+          ],
+          "results": [
+            {
+              "id": "recovery:1",
+              "docId": "recovery",
+              "name": "backup-runbook.txt",
+              "number": 1,
+              "page": null,
+              "ocr": false,
+              "text": "The database backup retention window is fourteen days. A snapshot is stored each night. To recover accidentally deleted records, restore an earlier snapshot into a separate database and copy the missing rows.",
+              "score": 0.03278688524590164,
+              "lexicalRank": 1,
+              "semanticRank": 1,
+              "bm25Score": 1.8231414115581543,
+              "cosineScore": 0.717437168613239
+            },
+            {
+              "id": "network:1",
+              "docId": "network",
+              "name": "network-runbook.txt",
+              "number": 1,
+              "page": null,
+              "ocr": false,
+              "text": "Error ERR_CONNECTION_RESET indicates a connection was unexpectedly closed. Inspect the reverse proxy idle timeout and restart the local connection pool. Request identifier NET-042 belongs to the networking runbook.",
+              "score": 0.016129032258064516,
+              "lexicalRank": null,
+              "semanticRank": 2,
+              "bm25Score": null,
+              "cosineScore": 0.6105910903696495
+            },
+            {
+              "id": "ocr:1",
+              "docId": "ocr",
+              "name": "scanning-guide.txt",
+              "number": 1,
+              "page": null,
+              "ocr": false,
+              "text": "English optical character recognition reads text from pictures and scanned document pages. Recognition can misread letters and numbers. Check the extracted text against the original image, especially names and dates.",
+              "score": 0.015873015873015872,
+              "lexicalRank": null,
+              "semanticRank": 3,
+              "bm25Score": null,
+              "cosineScore": 0.591502004249513
+            }
+          ],
+          "metrics": {
+            "answerable": true,
+            "hitAt1": 1,
+            "recallAtK": 1,
+            "reciprocalRank": 1,
+            "falseEvidence": null
+          }
+        },
+        {
+          "queryId": "auth-paraphrase",
+          "category": "paraphrase",
+          "question": "I forgot my login credentials. How do I get into my account again?",
+          "relevant": [
+            "auth"
+          ],
+          "results": [
+            {
+              "id": "auth:1",
+              "docId": "auth",
+              "name": "authentication.txt",
+              "number": 1,
+              "page": null,
+              "ocr": false,
+              "text": "Error AUTH_403 means access is forbidden. A user must request the required role from the workspace administrator. Password recovery uses an email link so a person who cannot sign in can restore access.",
+              "score": 0.01639344262295082,
+              "lexicalRank": null,
+              "semanticRank": 1,
+              "bm25Score": null,
+              "cosineScore": 0.6154347654587989
+            },
+            {
+              "id": "network:1",
+              "docId": "network",
+              "name": "network-runbook.txt",
+              "number": 1,
+              "page": null,
+              "ocr": false,
+              "text": "Error ERR_CONNECTION_RESET indicates a connection was unexpectedly closed. Inspect the reverse proxy idle timeout and restart the local connection pool. Request identifier NET-042 belongs to the networking runbook.",
+              "score": 0.016129032258064516,
+              "lexicalRank": null,
+              "semanticRank": 2,
+              "bm25Score": null,
+              "cosineScore": 0.5551509803439932
+            },
+            {
+              "id": "recovery:1",
+              "docId": "recovery",
+              "name": "backup-runbook.txt",
+              "number": 1,
+              "page": null,
+              "ocr": false,
+              "text": "The database backup retention window is fourteen days. A snapshot is stored each night. To recover accidentally deleted records, restore an earlier snapshot into a separate database and copy the missing rows.",
+              "score": 0.015873015873015872,
+              "lexicalRank": null,
+              "semanticRank": 3,
+              "bm25Score": null,
+              "cosineScore": 0.545663428026123
+            }
+          ],
+          "metrics": {
+            "answerable": true,
+            "hitAt1": 1,
+            "recallAtK": 1,
+            "reciprocalRank": 1,
+            "falseEvidence": null
+          }
+        },
+        {
+          "queryId": "ocr-paraphrase",
+          "category": "paraphrase",
+          "question": "Can I turn a photo of printed words into searchable writing?",
+          "relevant": [
+            "ocr"
+          ],
+          "results": [
+            {
+              "id": "ocr:1",
+              "docId": "ocr",
+              "name": "scanning-guide.txt",
+              "number": 1,
+              "page": null,
+              "ocr": false,
+              "text": "English optical character recognition reads text from pictures and scanned document pages. Recognition can misread letters and numbers. Check the extracted text against the original image, especially names and dates.",
+              "score": 0.01639344262295082,
+              "lexicalRank": null,
+              "semanticRank": 1,
+              "bm25Score": null,
+              "cosineScore": 0.6629436239977657
+            },
+            {
+              "id": "retrieval:1",
+              "docId": "retrieval",
+              "name": "retrieval-design.txt",
+              "number": 1,
+              "page": null,
+              "ocr": false,
+              "text": "Hybrid retrieval merges keyword and vector candidate rankings using reciprocal rank fusion. Exact technical identifiers benefit from lexical matching. Paraphrased questions benefit from semantic embeddings. A similarity score is not confidence.",
+              "score": 0.016129032258064516,
+              "lexicalRank": null,
+              "semanticRank": 2,
+              "bm25Score": null,
+              "cosineScore": 0.5698658350201028
+            },
+            {
+              "id": "privacy:1",
+              "docId": "privacy",
+              "name": "data-handling.txt",
+              "number": 1,
+              "page": null,
+              "ocr": false,
+              "text": "Document contents remain in browser memory. No uploaded documents are sent to a server. Reloading clears the corpus. Cached model files can persist on the device, but cached model weights do not include uploaded documents.",
+              "score": 0.015873015873015872,
+              "lexicalRank": null,
+              "semanticRank": 3,
+              "bm25Score": null,
+              "cosineScore": 0.5298797219480039
+            }
+          ],
+          "metrics": {
+            "answerable": true,
+            "hitAt1": 1,
+            "recallAtK": 1,
+            "reciprocalRank": 1,
+            "falseEvidence": null
+          }
+        },
+        {
+          "queryId": "privacy-paraphrase",
+          "category": "paraphrase",
+          "question": "Does my uploaded content leave my computer?",
+          "relevant": [
+            "privacy"
+          ],
+          "results": [
+            {
+              "id": "privacy:1",
+              "docId": "privacy",
+              "name": "data-handling.txt",
+              "number": 1,
+              "page": null,
+              "ocr": false,
+              "text": "Document contents remain in browser memory. No uploaded documents are sent to a server. Reloading clears the corpus. Cached model files can persist on the device, but cached model weights do not include uploaded documents.",
+              "score": 0.03278688524590164,
+              "lexicalRank": 1,
+              "semanticRank": 1,
+              "bm25Score": 2.4519871592352516,
+              "cosineScore": 0.7432971206809957
+            },
+            {
+              "id": "recovery:1",
+              "docId": "recovery",
+              "name": "backup-runbook.txt",
+              "number": 1,
+              "page": null,
+              "ocr": false,
+              "text": "The database backup retention window is fourteen days. A snapshot is stored each night. To recover accidentally deleted records, restore an earlier snapshot into a separate database and copy the missing rows.",
+              "score": 0.016129032258064516,
+              "lexicalRank": null,
+              "semanticRank": 2,
+              "bm25Score": null,
+              "cosineScore": 0.6067417918238989
+            },
+            {
+              "id": "auth:1",
+              "docId": "auth",
+              "name": "authentication.txt",
+              "number": 1,
+              "page": null,
+              "ocr": false,
+              "text": "Error AUTH_403 means access is forbidden. A user must request the required role from the workspace administrator. Password recovery uses an email link so a person who cannot sign in can restore access.",
+              "score": 0.015873015873015872,
+              "lexicalRank": null,
+              "semanticRank": 3,
+              "bm25Score": null,
+              "cosineScore": 0.506285327876619
+            }
+          ],
+          "metrics": {
+            "answerable": true,
+            "hitAt1": 1,
+            "recallAtK": 1,
+            "reciprocalRank": 1,
+            "falseEvidence": null
+          }
+        },
+        {
+          "queryId": "rollback-paraphrase",
+          "category": "paraphrase",
+          "question": "How do I undo an unsuccessful software deployment?",
+          "relevant": [
+            "release"
+          ],
+          "results": [
+            {
+              "id": "network:1",
+              "docId": "network",
+              "name": "network-runbook.txt",
+              "number": 1,
+              "page": null,
+              "ocr": false,
+              "text": "Error ERR_CONNECTION_RESET indicates a connection was unexpectedly closed. Inspect the reverse proxy idle timeout and restart the local connection pool. Request identifier NET-042 belongs to the networking runbook.",
+              "score": 0.01639344262295082,
+              "lexicalRank": null,
+              "semanticRank": 1,
+              "bm25Score": null,
+              "cosineScore": 0.6223063684221005
+            },
+            {
+              "id": "release:1",
+              "docId": "release",
+              "name": "release-plan.txt",
+              "number": 1,
+              "page": null,
+              "ocr": false,
+              "text": "The project codename is Marigold. The release owner is Anuj Yadav. The launch date is 21 November 2026. A failed rollout should be reverted by restoring the previously deployed version.",
+              "score": 0.016129032258064516,
+              "lexicalRank": null,
+              "semanticRank": 2,
+              "bm25Score": null,
+              "cosineScore": 0.6189622125242552
+            },
+            {
+              "id": "recovery:1",
+              "docId": "recovery",
+              "name": "backup-runbook.txt",
+              "number": 1,
+              "page": null,
+              "ocr": false,
+              "text": "The database backup retention window is fourteen days. A snapshot is stored each night. To recover accidentally deleted records, restore an earlier snapshot into a separate database and copy the missing rows.",
+              "score": 0.015873015873015872,
+              "lexicalRank": null,
+              "semanticRank": 3,
+              "bm25Score": null,
+              "cosineScore": 0.5984388921389241
+            }
+          ],
+          "metrics": {
+            "answerable": true,
+            "hitAt1": 0,
+            "recallAtK": 1,
+            "reciprocalRank": 0.5,
+            "falseEvidence": null
+          }
+        },
+        {
+          "queryId": "retention",
+          "category": "factual",
+          "question": "How long are database backups retained?",
+          "relevant": [
+            "recovery"
+          ],
+          "results": [
+            {
+              "id": "recovery:1",
+              "docId": "recovery",
+              "name": "backup-runbook.txt",
+              "number": 1,
+              "page": null,
+              "ocr": false,
+              "text": "The database backup retention window is fourteen days. A snapshot is stored each night. To recover accidentally deleted records, restore an earlier snapshot into a separate database and copy the missing rows.",
+              "score": 0.03278688524590164,
+              "lexicalRank": 1,
+              "semanticRank": 1,
+              "bm25Score": 2.5915193271585384,
+              "cosineScore": 0.8613797609387157
+            },
+            {
+              "id": "privacy:1",
+              "docId": "privacy",
+              "name": "data-handling.txt",
+              "number": 1,
+              "page": null,
+              "ocr": false,
+              "text": "Document contents remain in browser memory. No uploaded documents are sent to a server. Reloading clears the corpus. Cached model files can persist on the device, but cached model weights do not include uploaded documents.",
+              "score": 0.016129032258064516,
+              "lexicalRank": null,
+              "semanticRank": 2,
+              "bm25Score": null,
+              "cosineScore": 0.6662993878730467
+            },
+            {
+              "id": "release:1",
+              "docId": "release",
+              "name": "release-plan.txt",
+              "number": 1,
+              "page": null,
+              "ocr": false,
+              "text": "The project codename is Marigold. The release owner is Anuj Yadav. The launch date is 21 November 2026. A failed rollout should be reverted by restoring the previously deployed version.",
+              "score": 0.015873015873015872,
+              "lexicalRank": null,
+              "semanticRank": 3,
+              "bm25Score": null,
+              "cosineScore": 0.5644460578889998
+            }
+          ],
+          "metrics": {
+            "answerable": true,
+            "hitAt1": 1,
+            "recallAtK": 1,
+            "reciprocalRank": 1,
+            "falseEvidence": null
+          }
+        },
+        {
+          "queryId": "two-sources",
+          "category": "multiple sources",
+          "question": "Which files explain restoring deleted records and reverting a failed rollout?",
+          "relevant": [
+            "recovery",
+            "release"
+          ],
+          "results": [
+            {
+              "id": "recovery:1",
+              "docId": "recovery",
+              "name": "backup-runbook.txt",
+              "number": 1,
+              "page": null,
+              "ocr": false,
+              "text": "The database backup retention window is fourteen days. A snapshot is stored each night. To recover accidentally deleted records, restore an earlier snapshot into a separate database and copy the missing rows.",
+              "score": 0.03252247488101534,
+              "lexicalRank": 2,
+              "semanticRank": 1,
+              "bm25Score": 3.6462828231163087,
+              "cosineScore": 0.7354018599669034
+            },
+            {
+              "id": "release:1",
+              "docId": "release",
+              "name": "release-plan.txt",
+              "number": 1,
+              "page": null,
+              "ocr": false,
+              "text": "The project codename is Marigold. The release owner is Anuj Yadav. The launch date is 21 November 2026. A failed rollout should be reverted by restoring the previously deployed version.",
+              "score": 0.032018442622950824,
+              "lexicalRank": 1,
+              "semanticRank": 4,
+              "bm25Score": 5.697514906494075,
+              "cosineScore": 0.5709385448940258
+            },
+            {
+              "id": "privacy:1",
+              "docId": "privacy",
+              "name": "data-handling.txt",
+              "number": 1,
+              "page": null,
+              "ocr": false,
+              "text": "Document contents remain in browser memory. No uploaded documents are sent to a server. Reloading clears the corpus. Cached model files can persist on the device, but cached model weights do not include uploaded documents.",
+              "score": 0.031746031746031744,
+              "lexicalRank": 3,
+              "semanticRank": 3,
+              "bm25Score": 1.6879896157978587,
+              "cosineScore": 0.6004240720483944
+            }
+          ],
+          "metrics": {
+            "answerable": true,
+            "hitAt1": 1,
+            "recallAtK": 1,
+            "reciprocalRank": 1,
+            "falseEvidence": null
+          }
+        },
+        {
+          "queryId": "no-weather",
+          "category": "no answer",
+          "question": "What is the weather forecast for Tokyo tomorrow?",
+          "relevant": [],
+          "results": [],
+          "metrics": {
+            "answerable": false,
+            "hitAt1": null,
+            "recallAtK": null,
+            "reciprocalRank": null,
+            "falseEvidence": 0
+          }
+        },
+        {
+          "queryId": "no-recipe",
+          "category": "no answer",
+          "question": "How do I bake sourdough bread?",
+          "relevant": [],
+          "results": [],
+          "metrics": {
+            "answerable": false,
+            "hitAt1": null,
+            "recallAtK": null,
+            "reciprocalRank": null,
+            "falseEvidence": 0
+          }
+        },
+        {
+          "queryId": "no-number",
+          "category": "no answer",
+          "question": "What is the exact annual revenue of this business?",
+          "relevant": [],
+          "results": [
+            {
+              "id": "retrieval:1",
+              "docId": "retrieval",
+              "name": "retrieval-design.txt",
+              "number": 1,
+              "page": null,
+              "ocr": false,
+              "text": "Hybrid retrieval merges keyword and vector candidate rankings using reciprocal rank fusion. Exact technical identifiers benefit from lexical matching. Paraphrased questions benefit from semantic embeddings. A similarity score is not confidence.",
+              "score": 0.01639344262295082,
+              "lexicalRank": 1,
+              "semanticRank": null,
+              "bm25Score": 1.6879896157978587,
+              "cosineScore": null
+            },
+            {
+              "id": "release:1",
+              "docId": "release",
+              "name": "release-plan.txt",
+              "number": 1,
+              "page": null,
+              "ocr": false,
+              "text": "The project codename is Marigold. The release owner is Anuj Yadav. The launch date is 21 November 2026. A failed rollout should be reverted by restoring the previously deployed version.",
+              "score": 0.01639344262295082,
+              "lexicalRank": null,
+              "semanticRank": 1,
+              "bm25Score": null,
+              "cosineScore": 0.5217041857495304
+            }
+          ],
+          "metrics": {
+            "answerable": false,
+            "hitAt1": null,
+            "recallAtK": null,
+            "reciprocalRank": null,
+            "falseEvidence": 1
+          }
+        }
+      ],
+      "metrics": {
+        "answerableQueries": 12,
+        "unanswerableQueries": 3,
+        "hitAt1": 0.9166666666666666,
+        "recallAt3": 1,
+        "mrrAt3": 0.9583333333333334,
+        "falseEvidenceRate": 0.3333333333333333
+      }
+    }
+  ]
+}

@@ -4,7 +4,7 @@
 
 Open https://codesensitive.github.io/ and find **Search & models** in Evidence Lab's knowledge-base panel.
 
-1. Choose BM25, MiniLM L6 v2, or BGE Small English v1.5.
+1. Choose BM25, MiniLM L6 v2, BGE Small English v1.5, or a Hybrid BM25 + MiniLM/BGE option. Hybrid fuses both candidate rankings with RRF; see `HYBRID_RETRIEVAL_GUIDE.md`.
 2. Click **Download & activate locally** for an embedding model. The button fetches model files and creates the local index; it does not send your documents to an inference API. BM25 uses **Activate BM25** and needs no weights.
 3. Wait for the Active status, then ask your question. A Cancel button is available while a model operation runs.
 4. Add/remove documents or change chunk size normally. The next semantic query rebuilds vectors for the current corpus. Switching models rebuilds all vectors in the chosen embedding space.

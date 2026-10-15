@@ -2,7 +2,7 @@ export class EmbeddingClient{
   constructor(){this.worker=null;this.sequence=0;this.pending=new Map();}
   request(payload,onProgress=()=>{}){
     if(!this.worker){
-      this.worker=new Worker(new URL('./embedding-worker.js?v=20261015-ai',import.meta.url),{type:'module'});
+      this.worker=new Worker(new URL('./embedding-worker.js?v=20261015-hybrid',import.meta.url),{type:'module'});
       this.worker.onmessage=({data})=>{
         const job=this.pending.get(data.id);if(!job)return;
         if(data.type==='progress'){job.progress(data.message);return;}

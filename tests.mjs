@@ -6,6 +6,8 @@ import {readDocument,validateFile,MAX_FILE_BYTES} from './dist/documents.js';
 import {MODEL_CATALOG,modelInfo,cosine,rankVectors} from './dist/models.js';
 import {createWorker as createOcrWorker} from 'tesseract.js';
 import {fileURLToPath} from 'node:url';
+import {fuseRankings,queryMetrics,aggregateMetrics,retrievalProfile} from './dist/retrieval.js';
+import {benchmarkDocuments,benchmarkQueries} from './dist/benchmark.js';
 
 const fixture=async name=>{const data=await readFile(new URL(`./tests/fixtures/${name}`,import.meta.url));return new File([data],name);};
 test('bundled evaluation passes',()=>assert.ok(evaluate().every(c=>c.pass)));
@@ -59,4 +61,38 @@ test('English OCR recognizes the synthetic scanned image',async()=>{
     assert.match(data.text,/observatory codename is Cobalt/);
     assert.match(data.text,/18 December 2026/);
   }finally{await worker.terminate();}
+});
+test('RRF rewards agreement and retains both rank explanations',()=>{
+  const lexical=[{id:'exact',score:999},{id:'shared',score:7}],semantic=[{id:'meaning',score:.99},{id:'shared',score:.6}];
+  const hits=fuseRankings(lexical,semantic,3);
+  assert.equal(hits[0].id,'shared');assert.equal(hits[0].score,2/62);
+  assert.equal(hits[0].lexicalRank,2);assert.equal(hits[0].semanticRank,2);
+  assert.equal(hits[0].bm25Score,7);assert.equal(hits[0].cosineScore,.6);
+  assert.equal(hits[1].semanticRank,null);assert.equal(hits[2].lexicalRank,null);
+});
+test('RRF is independent of raw score scales and does not double-count duplicate IDs',()=>{
+  const lexical=[{id:'a',score:1},{id:'b',score:.5}],semantic=[{id:'b',score:50}];
+  assert.deepEqual(fuseRankings(lexical,semantic).map(hit=>hit.id),fuseRankings(lexical.map(hit=>({...hit,score:hit.score*100000})),semantic).map(hit=>hit.id));
+  assert.equal(fuseRankings([{id:'a',score:1},{id:'a',score:1}],[])[0].score,1/61);
+  assert.deepEqual(fuseRankings([],[]),[]);assert.throws(()=>fuseRankings([],[],3,-1),/nonnegative/);
+});
+test('retrieval profiles route each hybrid option to its own embedding model',()=>{
+  assert.equal(retrievalProfile('hybrid-bge').model,'bge');assert.equal(retrievalProfile('hybrid-minilm').kind,'hybrid');
+  assert.equal(retrievalProfile('minilm').kind,'semantic');assert.equal(retrievalProfile('bm25').model,null);
+  assert.throws(()=>retrievalProfile('hybrid-unknown'),/Unknown/);
+});
+test('recall counts unique relevant sources and reciprocal rank uses first supported hit',()=>{
+  const metrics=queryMetrics([{docId:'noise'},{docId:'a'},{docId:'a'}],['a','b'],3);
+  assert.equal(metrics.hitAt1,0);assert.equal(metrics.recallAtK,.5);assert.equal(metrics.reciprocalRank,.5);
+});
+test('comparison separates answerable quality from no-answer false evidence',()=>{
+  const rows=[{metrics:queryMetrics([{docId:'a'}],['a'])},{metrics:queryMetrics([],['b'])},{metrics:queryMetrics([{docId:'noise'}],[])},{metrics:queryMetrics([],[])}];
+  const metrics=aggregateMetrics(rows);assert.equal(metrics.hitAt1,.5);assert.equal(metrics.recallAt3,.5);assert.equal(metrics.mrrAt3,.5);assert.equal(metrics.falseEvidenceRate,.5);
+  assert.equal(aggregateMetrics([]).hitAt1,null);assert.equal(queryMetrics([],[]).recallAtK,null);
+});
+test('every benchmark label refers to an existing unique source and query IDs are unique',()=>{
+  const ids=new Set(benchmarkDocuments.map(doc=>doc.id));assert.equal(ids.size,benchmarkDocuments.length);
+  assert.equal(new Set(benchmarkQueries.map(query=>query.id)).size,benchmarkQueries.length);
+  for(const query of benchmarkQueries)for(const id of query.relevant)assert.ok(ids.has(id));
+  assert.ok(benchmarkQueries.some(query=>!query.relevant.length));assert.ok(benchmarkQueries.some(query=>query.relevant.length>1));
 });

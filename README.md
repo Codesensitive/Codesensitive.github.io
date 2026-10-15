@@ -42,6 +42,8 @@ The UI supports PDF, UTF-8 .txt/.md and PNG/JPEG files, up to 2 MiB per file, 20
 
 Local semantic retrieval supports up to 200 chunks, uses quantized 384-dimensional MiniLM/BGE embeddings, and rebuilds vectors when the model or corpus changes. Cosine cutoffs (MiniLM 0.25, BGE 0.5) are heuristics, not confidence or factual support. Long inputs are truncated to the selected model's token limit. BM25 remains available without downloading a model. The included on-page evaluation tests the BM25 sample corpus, independently of selected model and uploaded files.
 
-See `SEMANTIC_OCR_GUIDE.md` for usage, model sources, caching, Google/Microsoft distinctions, and limitations.
+Hybrid modes merge BM25 and MiniLM/BGE candidate ranks with RRF. The Compare retrieval button runs a real four-method comparison on a labeled synthetic corpus, with Hit@1, Recall@3, MRR@3 and no-answer false evidence. Results and per-query labels are inspectable and downloadable; they are not a universal model leaderboard. A measured run is saved in `evaluation/` for reference; the website computes fresh results rather than displaying those saved numbers.
+
+See `HYBRID_RETRIEVAL_GUIDE.md` for fusion and evaluation details, and `SEMANTIC_OCR_GUIDE.md` for model sources, caching, Google/Microsoft distinctions, and OCR limitations.
 
 GitHub Actions runs the automated tests before deploying. Browser end-to-end coverage is recorded in `TEST_REPORT.md`.

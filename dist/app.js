@@ -1,9 +1,11 @@
-import {samples,buildIndex,search,excerpt,evaluate} from './engine.js?v=20261015-ai';
-import {readDocument,validateFile,corpusBytes,MAX_DOCUMENTS,MAX_CORPUS_BYTES} from './documents.js?v=20261015-ai';
-import {EmbeddingClient} from './embeddings.js?v=20261015-ai';
-import {MODEL_CATALOG,MODEL_CACHE,MAX_SEMANTIC_CHUNKS} from './models.js?v=20261015-ai';
+import {samples,buildIndex,search,excerpt,evaluate} from './engine.js?v=20261015-hybrid';
+import {readDocument,validateFile,corpusBytes,MAX_DOCUMENTS,MAX_CORPUS_BYTES} from './documents.js?v=20261015-hybrid';
+import {EmbeddingClient} from './embeddings.js?v=20261015-hybrid';
+import {MODEL_CATALOG,MODEL_CACHE,MAX_SEMANTIC_CHUNKS} from './models.js?v=20261015-hybrid';
+import {retrievalProfile,fuseRankings,CANDIDATE_DEPTH,RRF_CONSTANT} from './retrieval.js?v=20261015-hybrid';
+import {runComparison} from './benchmark.js?v=20261015-hybrid';
 let docs=structuredClone(samples),index,lastTrace=null,uploading=false;
-let activeModel='bm25';const embeddings=new EmbeddingClient();
+let activeModel='bm25',comparisonAbort=null;const embeddings=new EmbeddingClient();
 const $=selector=>document.querySelector(selector);
 const el=(tag,cls,text)=>{const element=document.createElement(tag);if(cls)element.className=cls;if(text!==undefined)element.textContent=text;return element;};
 const countWords=text=>(text.match(/\S+/g)||[]).length;
@@ -40,22 +42,23 @@ async function ask(question){
   if(uploading)return;
   clearResults();
   if(!docs.length){$('#status').textContent='Add a document or restore the sample corpus to search.';return;}
-  const start=performance.now(),modelUsed=activeModel;let hits;
-  if(modelUsed==='bm25')hits=search(index,question,Number($('#top-k').value));
+  const start=performance.now(),modelUsed=activeModel,profile=retrievalProfile(modelUsed),model=MODEL_CATALOG[profile.model];let hits;
+  if(profile.kind==='bm25')hits=search(index,question,Number($('#top-k').value));
   else{
     setBusy(true,true);
     try{
       if(index.chunks.length>MAX_SEMANTIC_CHUNKS)throw new Error('Use BM25 or reduce this corpus to 200 chunks for local embeddings.');
-      const ranked=await embeddings.request({action:'search',model:modelUsed,chunks:index.chunks.map(chunk=>chunk.text),question,k:Number($('#top-k').value)},message=>$('#status').textContent=message);
-      hits=ranked.map(hit=>({...index.chunks[hit.i],score:hit.score}));$('#status').textContent='';
+      const ranked=await embeddings.request({action:'search',model:profile.model,chunks:index.chunks.map(chunk=>chunk.text),question,k:profile.kind==='hybrid'?CANDIDATE_DEPTH:Number($('#top-k').value)},message=>$('#status').textContent=message);
+      const semantic=ranked.map(hit=>({...index.chunks[hit.i],score:hit.score}));
+      hits=profile.kind==='hybrid'?fuseRankings(search(index,question,CANDIDATE_DEPTH),semantic,Number($('#top-k').value)):semantic;$('#status').textContent='';
     }catch(error){$('#status').textContent=error.message+' Switch to BM25 to continue without a model.';return;}
     finally{setBusy(false);}
   }
   const elapsed=performance.now()-start;
   const results=$('#results');
-  if(!hits.length){results.append(el('p','empty-answer',modelUsed==='bm25'?'No matching evidence found. Try wording that appears in your documents, or add a relevant source. No answer has been generated.':`No passages passed the cosine similarity cutoff (${MODEL_CATALOG[modelUsed].cutoff}). This heuristic is not a guarantee of answerability. Try another query or BM25.`));return;}
+  if(!hits.length){results.append(el('p','empty-answer',profile.kind==='bm25'?'No matching evidence found. Try wording that appears in your documents, or add a relevant source. No answer has been generated.':profile.kind==='hybrid'?'Neither BM25 nor semantic retrieval returned evidence. Try a different query or add a relevant source. Matching rules do not guarantee answerability.':`No passages passed the cosine similarity cutoff (${model.cutoff}). This heuristic is not a guarantee of answerability. Try another query or BM25.`));return;}
   const head=el('div','result-header');head.append(el('h4','','Retrieved evidence'),el('small','',`${hits.length} ${hits.length===1?'passage':'passages'} · ${elapsed.toFixed(1)} ms`));results.append(head);
-  const excerpts=hits.map(hit=>modelUsed==='bm25'?excerpt(hit,question):hit.text);
+  const excerpts=hits.map(hit=>profile.kind==='bm25'?excerpt(hit,question):hit.text);
   hits.forEach((hit,i)=>{
     const p=el('p','excerpt',excerpts[i]),ref=el('button','citation',`[${i+1}]`);ref.type='button';
     ref.setAttribute('aria-label',`Open source ${i+1}: ${hit.name}${hit.page?`, page ${hit.page}`:''}`);
@@ -65,9 +68,12 @@ async function ask(question){
   results.append(el('p','sources-title','SOURCES / INSPECT THE CONTEXT'));
   hits.forEach((hit,i)=>{
     const details=el('details','source');details.id=`source-${i}`;
-    details.append(el('summary','',`[${i+1}] ${hit.name} · ${locationOf(hit)}`),el('div','source-meta',`${modelUsed==='bm25'?'BM25 score':'Cosine similarity'} ${hit.score.toFixed(3)} · relevance signal, not confidence`),el('p','',hit.text));results.append(details);
+    const score=profile.kind==='hybrid'?`RRF ${hit.score.toFixed(5)} · BM25 rank ${hit.lexicalRank??'—'} · semantic rank ${hit.semanticRank??'—'}`:`${profile.kind==='bm25'?'BM25 score':'Cosine similarity'} ${hit.score.toFixed(3)}`;
+    details.append(el('summary','',`[${i+1}] ${hit.name} · ${locationOf(hit)}`),el('div','source-meta',`${score} · ranking signal, not confidence`),el('p','',hit.text));
+    if(profile.kind==='hybrid')details.append(el('div','source-meta',`Raw BM25 ${hit.bm25Score?.toFixed(3)??'no match'} · cosine ${hit.cosineScore?.toFixed(3)??'below cutoff'}`));
+    results.append(details);
   });
-  lastTrace={version:3,mode:modelUsed==='bm25'?'BM25 extractive retrieval':'Local semantic retrieval; no generative LLM',model:MODEL_CATALOG[modelUsed]?.id||'BM25',question,settings:{chunkWords:Number($('#chunk-size').value),overlap:.2,topK:Number($('#top-k').value),similarityCutoff:MODEL_CATALOG[modelUsed]?.cutoff??null},elapsedMs:elapsed,results:hits.map((hit,i)=>({source:hit.name,page:hit.page,ocr:hit.ocr,chunk:hit.number,score:hit.score,text:hit.text,excerpt:excerpts[i]}))};
+  lastTrace={version:4,mode:profile.kind,model:model?.id||'BM25',question,settings:{chunkWords:Number($('#chunk-size').value),overlap:.2,topK:Number($('#top-k').value),similarityCutoff:model?.cutoff??null,...(profile.kind==='hybrid'?{rrfConstant:RRF_CONSTANT,candidateDepth:CANDIDATE_DEPTH}:{})},elapsedMs:elapsed,results:hits.map((hit,i)=>({source:hit.name,page:hit.page,ocr:hit.ocr,chunk:hit.number,score:hit.score,...(profile.kind==='hybrid'?{lexicalRank:hit.lexicalRank,semanticRank:hit.semanticRank,bm25Score:hit.bm25Score,cosineScore:hit.cosineScore}:{}),text:hit.text,excerpt:excerpts[i]}))};
   const exportButton=el('button','quiet','Download query trace ↓');exportButton.onclick=downloadTrace;results.append(exportButton);
 }
 $('#query-form').addEventListener('submit',event=>{event.preventDefault();const question=$('#question').value.trim();if(question)ask(question);});
@@ -105,26 +111,27 @@ $('#evaluate').onclick=()=>{
   panel.append(el('p','eval-note','Five deterministic smoke checks against a fresh sample index. These test retrieval wiring, no-match behavior, and excerpt fidelity; they do not measure arbitrary-document answer quality.'));
 };
 function updateModelChoice(){
-  const choice=$('#embedding-model').value,info=MODEL_CATALOG[choice];
-  $('#model-description').textContent=info?`${info.description} ${info.size}; 384 dimensions; ${info.license}. Up to 200 chunks. Inputs are limited to ${info.tokens} tokens; longer chunks are truncated. Similarity cutoff ${info.cutoff} is a heuristic, not confidence.`:'Instant lexical search. No weights, download, or inference required.';
+  const profile=retrievalProfile($('#embedding-model').value),info=MODEL_CATALOG[profile.model];
+  $('#model-description').textContent=(profile.kind==='hybrid'?`Merges up to ${CANDIDATE_DEPTH} BM25 and ${CANDIDATE_DEPTH} semantic candidates with RRF (constant ${RRF_CONSTANT}). No additional model. `:'')+(info?`${info.description} ${info.size}; 384 dimensions; ${info.license}. Up to 200 chunks. Inputs are limited to ${info.tokens} tokens; longer chunks are truncated. Similarity cutoff ${info.cutoff} is a heuristic, not confidence.`:'Instant lexical search. No weights, download, or inference required.');
   $('#activate-model').textContent=info?'Download & activate locally':'Activate BM25';
   for(const id of ['model-card','model-download'])$('#'+id).hidden=!info;
   if(info){$('#model-card').href=`https://huggingface.co/${info.id}`;$('#model-download').href=`https://huggingface.co/${info.id}/resolve/main/onnx/model_quantized.onnx?download=true`;}
 }
 function showActive(){
-  $('#model-status').textContent=`Active: ${MODEL_CATALOG[activeModel]?.label||'BM25'} · vectors rebuild automatically after document/chunk changes`;
-  $('#retrieval-mode').textContent=`LOCAL RETRIEVAL / ${MODEL_CATALOG[activeModel]?.label.toUpperCase()||'BM25'}`;
+  const profile=retrievalProfile(activeModel);
+  $('#model-status').textContent=`Active: ${profile.label} · vectors rebuild automatically after document/chunk changes`;
+  $('#retrieval-mode').textContent=`LOCAL RETRIEVAL / ${profile.label.toUpperCase()}`;
 }
 $('#embedding-model').onchange=updateModelChoice;
-$('#cancel-model').onclick=()=>embeddings.cancel();
+$('#cancel-model').onclick=()=>{comparisonAbort?.abort();embeddings.cancel();};
 $('#activate-model').onclick=async()=>{
-  const choice=$('#embedding-model').value;clearResults();
+  const choice=$('#embedding-model').value,profile=retrievalProfile(choice);clearResults();
   if(choice==='bm25'){embeddings.cancel();activeModel='bm25';showActive();return;}
   setBusy(true,true);
   try{
     if(index.chunks.length>MAX_SEMANTIC_CHUNKS)throw new Error('Local embeddings support up to 200 chunks. Reduce your corpus or use BM25.');
-    const result=await embeddings.request({action:'activate',model:choice,chunks:index.chunks.map(chunk=>chunk.text)},message=>$('#model-status').textContent=message);
-    activeModel=choice;showActive();$('#status').textContent=`${MODEL_CATALOG[choice].label} ready. ${result.chunks} passages embedded locally. Model files may be cached; documents are not persisted.`;
+    const result=await embeddings.request({action:'activate',model:profile.model,chunks:index.chunks.map(chunk=>chunk.text)},message=>$('#model-status').textContent=message);
+    activeModel=choice;showActive();$('#status').textContent=`${profile.label} ready. ${result.chunks} passages embedded locally. Model files may be cached; documents are not persisted.`;
   }catch(error){embeddings.cancel();activeModel='bm25';showActive();$('#status').textContent=`${error.message} BM25 remains available.`;}
   finally{setBusy(false);}
 };
@@ -133,5 +140,26 @@ $('#clear-models').onclick=async()=>{
   try{if('caches' in window)await caches.delete(MODEL_CACHE);$('#status').textContent='Embedding model cache cleared and active vectors released. BM25 is active.';}
   catch{$('#status').textContent='BM25 is active. Your browser did not allow clearing the model cache.';}
 };
+$('#compare-methods').onclick=async()=>{
+  if(uploading)return;clearResults();$('#comparison').replaceChildren();setBusy(true,true);comparisonAbort=new AbortController();
+  try{
+    const report=await runComparison(embeddings,message=>$('#status').textContent=message,comparisonAbort.signal);
+    $('#status').textContent='Comparison complete. These are measured results on a small synthetic test set, not a general model ranking.';
+    renderComparison(report);
+  }catch(error){$('#status').textContent='Comparison did not complete.';$('#comparison').append(el('p','eval-note',`${error.message} No partial scores are reported. Your documents and chosen retrieval mode are preserved.`));}
+  finally{comparisonAbort=null;setBusy(false);showActive();}
+};
+function renderComparison(report){
+  const panel=$('#comparison'),percentage=value=>value===null?'—':`${(value*100).toFixed(1)}%`;
+  panel.append(el('h4','',`Retrieval comparison · ${report.dataset}`),el('p','eval-note',`${report.documents.length} synthetic source documents · ${report.queries.filter(query=>query.relevant.length).length} answerable questions (including a multiple-source question) · ${report.queries.filter(query=>!query.relevant.length).length} no-answer questions · top 3 results. Runs independently of your uploads, selected model and chunk settings. Higher Hit@1, Recall@3 and MRR@3 are better; lower false evidence is better. This set was authored for the app and is not a held-out benchmark.`));
+  const scroll=el('div','comparison-scroll'),table=el('table','comparison-table'),caption=el('caption','sr-only','Measured retrieval comparison results'),thead=el('thead'),headers=el('tr');
+  for(const text of ['Method','Hit@1 ↑','Recall@3 ↑','MRR@3 ↑','False evidence ↓']){const th=el('th','',text);th.scope='col';headers.append(th);}thead.append(headers);table.append(caption,thead);
+  const tbody=el('tbody');
+  for(const method of report.methods){const row=el('tr'),name=el('th','',method.label);name.scope='row';row.append(name,el('td','',percentage(method.metrics.hitAt1)),el('td','',percentage(method.metrics.recallAt3)),el('td','',method.metrics.mrrAt3.toFixed(3)),el('td','',percentage(method.metrics.falseEvidenceRate)));tbody.append(row);}table.append(tbody);scroll.append(table);panel.append(scroll);
+  panel.append(el('p','eval-note',`RRF constant ${report.settings.rrfConstant}; up to ${report.settings.candidateDepth} candidates per retriever. Semantic cutoffs: MiniLM 0.25, BGE 0.5. False evidence means any returned passage on a question labeled unanswerable; it is not an LLM hallucination rate. No latency comparison or generated-answer evaluation is performed.`));
+  const download=el('button','quiet','Download comparison JSON ↓');download.onclick=()=>{const url=URL.createObjectURL(new Blob([JSON.stringify(report,(key,value)=>['freq','terms'].includes(key)?undefined:value,2)],{type:'application/json'}));const link=el('a');link.href=url;link.download='retrieval-comparison.json';link.click();setTimeout(()=>URL.revokeObjectURL(url),1000);};panel.append(download);
+  const details=el('details','comparison-details');details.append(el('summary','','Inspect all labeled questions and rankings'));
+  for(const query of report.queries){const section=el('section','comparison-query');section.append(el('h5','',`${query.category}: ${query.question}`),el('p','eval-note',`Relevant sources: ${query.relevant.length?query.relevant.join(', '):'none (unanswerable)'}`));for(const method of report.methods){const row=method.rows.find(row=>row.queryId===query.id);section.append(el('p','eval-note',`${method.label}: ${row.results.length?row.results.map((hit,i)=>`${i+1}. ${hit.name}${query.relevant.includes(hit.docId)?' [relevant]':''}`).join(' · '):'no evidence'}`));}details.append(section);}panel.append(details);
+}
 updateModelChoice();showActive();
 reindex();

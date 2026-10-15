@@ -13,14 +13,15 @@ The public site is https://codesensitive.github.io/. SEO work makes it easier fo
 - Font stylesheets discovered directly from HTML with preconnects, replacing a CSS import waterfall. Existing `display=swap`, on-demand model loading and fingerprinted homepage assets remain in place. No Core Web Vitals score is claimed without field measurements.
 - Regression checks for metadata, structured-data identity, internal links, sitemap URLs, robots rules, 404 indexing and preview dimensions.
 
-## Google Search Console: account setup still needed
+## Google Search Console: setup completed on 15 October 2026
 
-1. Open https://search.google.com/search-console/ using your Google account.
-2. Add a **URL-prefix property** for `https://codesensitive.github.io/`. You do not control DNS for `github.io`, so do not choose a Domain property for that shared domain.
-3. Choose HTML-tag or HTML-file verification. Copy the exact verification tag or download the provided verification file. Add that exact tag to the homepage head, or the provided file to `dist/`, then deploy and click Verify. Do not invent a token. Leave the verification in place afterward.
-4. Submit `https://codesensitive.github.io/sitemap.xml` in Sitemaps.
-5. Inspect the homepage and case-study URLs. Use Test Live URL, confirm the canonical and crawl result, and request indexing for each if appropriate. Requests do not guarantee indexing.
-6. Monitor Page indexing and Search results. Compare impressions, clicks, search queries and average position over time; small-sample position changes are noisy. Search Console data and indexing submission have not been verified in this implementation.
+- Added and verified the URL-prefix property `https://codesensitive.github.io/` using Google's HTML tag.
+- The exact verification tag is deployed in `dist/index.html`. Keep it in the homepage head when editing or rebuilding the site so ownership verification remains valid.
+- Google's live URL tests passed for the homepage and `https://codesensitive.github.io/evidence-lab.html`: both were available to Google and could be indexed. Google detected a valid ProfilePage item on the homepage and a valid Breadcrumbs item on the case study.
+- Requested indexing for both URLs; Search Console confirmed **Indexing requested** for each. This confirms submission, not completed indexing or rankings.
+- Submitted `https://codesensitive.github.io/sitemap.xml`. Search Console still reported **Couldn't fetch** after resubmission. The public file returned HTTP 200 with valid XML containing both URLs, and `robots.txt` allowed crawling and declared the sitemap. The reason for Google's fetch failure was not provided; sitemap processing remains unresolved.
+
+Next account check: open Sitemaps and see whether Google has read the file successfully. If the error persists, inspect its latest details and recheck the public sitemap response before another submission. Both pages already have direct indexing requests. Monitor Page indexing and Search results for Google's eventual decisions, impressions, clicks and search queries. New properties may initially have no performance data. Do not interpret an accepted request as a guarantee of indexing.
 
 ## Useful follow-through
 

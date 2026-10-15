@@ -2,7 +2,7 @@
 
 Live portfolio: https://codesensitive.github.io/
 
-Evidence Lab runs PDF/text/image ingestion, optional English OCR, and BM25 or local embedding retrieval in the visitor's browser. PDF citations and JSON traces retain page numbers and OCR provenance. MiniLM and BGE weights download from Hugging Face; inference runs locally. Document contents are not sent to a service. There is no generative LLM. Documents and vectors stay in session memory; model files can be cached by the browser. Fonts load from Google Fonts.
+Evidence Lab runs PDF/text/image ingestion, optional English OCR, and BM25 or local embedding retrieval in the visitor's browser. PDF citations and JSON traces retain page numbers and OCR provenance. MiniLM and BGE weights download from Hugging Face; inference runs locally. Document contents are not sent to a service. Optional WebLLM answer generation runs on the visitor's GPU after an explicit model download; evidence-only mode is the default. Documents and vectors stay in session memory; model files can be cached by the browser. Fonts load from Google Fonts.
 
 ## Develop
 
@@ -32,7 +32,7 @@ Open http://127.0.0.1:4173 for local preview.
 - `tests.mjs`: retrieval smoke tests
 - `tests/fixtures/`: synthetic PDFs for positive and negative tests
 - `scripts/prepare-pdf.mjs`: refresh vendored runtime after an intentional PDF.js dependency update (`npm run prepare:pdf`)
-- `scripts/prepare-ai.mjs`: refresh embedding/OCR runtime assets (`npm run prepare:ai`)
+- `scripts/prepare-ai.mjs`: refresh embedding/OCR/WebLLM runtime assets (`npm run prepare:ai`)
 
 ## Deploy
 
@@ -47,3 +47,5 @@ Hybrid modes merge BM25 and MiniLM/BGE candidate ranks with RRF. The Compare ret
 See `HYBRID_RETRIEVAL_GUIDE.md` for fusion and evaluation details, and `SEMANTIC_OCR_GUIDE.md` for model sources, caching, Google/Microsoft distinctions, and OCR limitations.
 
 GitHub Actions runs the automated tests before deploying. Browser end-to-end coverage is recorded in `TEST_REPORT.md`.
+
+See `WEBLLM_GUIDE.md` for local answer generation, model sizes, GPU requirements, privacy, limitations and implementation details.

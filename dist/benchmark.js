@@ -1,6 +1,6 @@
-import {buildIndex,search} from './engine.js?v=20261015-hybrid';
-import {MODEL_CATALOG} from './models.js?v=20261015-hybrid';
-import {fuseRankings,queryMetrics,aggregateMetrics,CANDIDATE_DEPTH,RRF_CONSTANT} from './retrieval.js?v=20261015-hybrid';
+import {buildIndex,search} from './engine.js?v=20261015-webllm';
+import {MODEL_CATALOG} from './models.js?v=20261015-webllm';
+import {fuseRankings,queryMetrics,aggregateMetrics,CANDIDATE_DEPTH,RRF_CONSTANT} from './retrieval.js?v=20261015-webllm';
 export const BENCHMARK_VERSION='engineering-v1';
 export const benchmarkDocuments=[
   {id:'network',name:'network-runbook.txt',text:'Error ERR_CONNECTION_RESET indicates a connection was unexpectedly closed. Inspect the reverse proxy idle timeout and restart the local connection pool. Request identifier NET-042 belongs to the networking runbook.'},

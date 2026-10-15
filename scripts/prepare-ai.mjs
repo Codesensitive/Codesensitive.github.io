@@ -3,6 +3,7 @@ const root=new URL('../',import.meta.url);
 function copy(from,to){const destination=new URL(`dist/vendor/${to}`,root);mkdirSync(new URL('./',destination),{recursive:true});cpSync(new URL(`node_modules/${from}`,root),destination,{recursive:true});}
 copy('@huggingface/transformers/dist/transformers.min.js','transformers/transformers.js');
 copy('@huggingface/transformers/LICENSE','transformers/LICENSE');
+copy('@mlc-ai/web-llm/lib/index.js','webllm/webllm.js');
 for(const file of ['ort-wasm-simd-threaded.asyncify.mjs','ort-wasm-simd-threaded.asyncify.wasm'])copy(`onnxruntime-web/dist/${file}`,`ort/${file}`);
 copy('onnxruntime-web/README.md','ort/README.md');
 copy('tesseract.js/dist/tesseract.esm.min.js','ocr/tesseract.js');

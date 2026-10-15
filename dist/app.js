@@ -1,9 +1,12 @@
-import {samples,buildIndex,search,excerpt,evaluate} from './engine.js?v=20261015-hybrid';
-import {readDocument,validateFile,corpusBytes,MAX_DOCUMENTS,MAX_CORPUS_BYTES} from './documents.js?v=20261015-hybrid';
-import {EmbeddingClient} from './embeddings.js?v=20261015-hybrid';
-import {MODEL_CATALOG,MODEL_CACHE,MAX_SEMANTIC_CHUNKS} from './models.js?v=20261015-hybrid';
-import {retrievalProfile,fuseRankings,CANDIDATE_DEPTH,RRF_CONSTANT} from './retrieval.js?v=20261015-hybrid';
-import {runComparison} from './benchmark.js?v=20261015-hybrid';
+import {samples,buildIndex,search,excerpt,evaluate} from './engine.js?v=20261015-webllm';
+import {readDocument,validateFile,corpusBytes,MAX_DOCUMENTS,MAX_CORPUS_BYTES} from './documents.js?v=20261015-webllm';
+import {EmbeddingClient} from './embeddings.js?v=20261015-webllm';
+import {MODEL_CATALOG,MODEL_CACHE,MAX_SEMANTIC_CHUNKS} from './models.js?v=20261015-webllm';
+import {retrievalProfile,fuseRankings,CANDIDATE_DEPTH,RRF_CONSTANT} from './retrieval.js?v=20261015-webllm';
+import {runComparison} from './benchmark.js?v=20261015-webllm';
+import {LLM_MODELS,weightSize,buildGroundedPrompt,inspectCitations,GENERATION_OPTIONS} from './llm-models.js?v=20261015-webllm';
+import {LLMClient} from './llm.js?v=20261015-webllm';
+const llm=new LLMClient();let loadedLLM=null;
 let docs=structuredClone(samples),index,lastTrace=null,uploading=false;
 let activeModel='bm25',comparisonAbort=null;const embeddings=new EmbeddingClient();
 const $=selector=>document.querySelector(selector);
@@ -17,6 +20,7 @@ function setBusy(busy,cancellable=false){
   $('.upload').setAttribute('aria-disabled',String(busy));
   $('.lab').setAttribute('aria-busy',String(busy));
   $('#cancel-model').hidden=!busy||!cancellable;$('#cancel-model').disabled=false;
+  $('#cancel-llm').hidden=true;
 }
 function reindex(){
   index=buildIndex(docs,Number($('#chunk-size').value));
@@ -75,6 +79,53 @@ async function ask(question){
   });
   lastTrace={version:4,mode:profile.kind,model:model?.id||'BM25',question,settings:{chunkWords:Number($('#chunk-size').value),overlap:.2,topK:Number($('#top-k').value),similarityCutoff:model?.cutoff??null,...(profile.kind==='hybrid'?{rrfConstant:RRF_CONSTANT,candidateDepth:CANDIDATE_DEPTH}:{})},elapsedMs:elapsed,results:hits.map((hit,i)=>({source:hit.name,page:hit.page,ocr:hit.ocr,chunk:hit.number,score:hit.score,...(profile.kind==='hybrid'?{lexicalRank:hit.lexicalRank,semanticRank:hit.semanticRank,bm25Score:hit.bm25Score,cosineScore:hit.cosineScore}:{}),text:hit.text,excerpt:excerpts[i]}))};
   const exportButton=el('button','quiet','Download query trace ↓');exportButton.onclick=downloadTrace;results.append(exportButton);
+  if(loadedLLM)await generateAnswer(question,hits,results);
+}
+function llmBusy(){setBusy(true);$('#cancel-llm').hidden=false;$('#cancel-llm').disabled=false;}
+function llmStatus(message){$('#llm-status').textContent=message;}
+function updateLLMChoice(){
+  const info=LLM_MODELS[$('#answer-model').value];
+  $('#llm-description').textContent=info?`${info.guidance} ~${weightSize(info)} weight download; ~${(info.vram/1000).toFixed(2)} GB estimated GPU memory, plus browser overhead. ${info.f16?'Requires shader-f16. ':''}${info.license}.`:'Evidence-only mode retrieves and cites source passages without generating an answer.';
+  $('#llm-card').hidden=!info;if(info)$('#llm-card').href=`https://huggingface.co/mlc-ai/${info.id}`;
+  $('#load-llm').textContent=info?'Download & load answer model':'Use evidence only';
+}
+$('#answer-model').onchange=updateLLMChoice;
+$('#cancel-llm').onclick=()=>{llm.cancel();loadedLLM=null;llmStatus('Cancelled. Evidence-only mode is active; cached downloads may be reused.');};
+$('#unload-llm').onclick=()=>{llm.cancel();loadedLLM=null;llmStatus('Evidence-only mode active. GPU resources released; cached weights kept.');};
+$('#load-llm').onclick=async()=>{
+  if(uploading)return;const choice=$('#answer-model').value;
+  llm.cancel();loadedLLM=null;
+  if(!LLM_MODELS[choice]){llmStatus('Active: evidence only. No answer model loaded.');return;}
+  llmBusy();llmStatus('Checking WebGPU and preparing model download…');
+  try{await llm.request({action:'load',model:choice},llmStatus);loadedLLM=choice;llmStatus(`Active: ${LLM_MODELS[choice].label}. Submit a question to generate from retrieved evidence.`);}
+  catch(error){llm.cancel();llmStatus(`${error.message} Evidence-only search is available.`);}
+  finally{setBusy(false);}
+};
+$('#clear-llm').onclick=async()=>{
+  if(uploading)return;const model=$('#answer-model').value;
+  if(!LLM_MODELS[model]){llmStatus('Select a model to clear its cached files.');return;}
+  llm.cancel();loadedLLM=null;llmBusy();llmStatus('Clearing the selected answer model cache…');
+  try{await llm.request({action:'clear',model});llmStatus(`${LLM_MODELS[model].label} cached files cleared. Evidence-only mode active.`);}
+  catch(error){llmStatus(`Could not clear the cache: ${error.message}`);}
+  finally{llm.cancel();setBusy(false);}
+};
+async function generateAnswer(question,hits,results){
+  const model=loadedLLM,prompt=buildGroundedPrompt(question,hits),trace=lastTrace;
+  const panel=el('section','generated-answer'),answer=el('p','generated-text','Generating locally…'),note=el('p','eval-note');
+  panel.append(el('h4','',`Generated answer · ${LLM_MODELS[model].label}`),answer,note);results.prepend(panel);
+  const start=performance.now();llmBusy();
+  trace.generation={model:LLM_MODELS[model].id,parameters:GENERATION_OPTIONS,context:prompt.sources,status:'running'};
+  try{
+    const result=await llm.request({action:'generate',model,messages:prompt.messages},text=>{answer.textContent=text||'Generating locally…';});
+    if(!result.answer.trim())throw new Error('The model returned an empty answer.');
+    answer.textContent=result.answer;
+    const citations=inspectCitations(result.answer,prompt.sources);
+    note.textContent=[citations.invalid.length?`Invalid source references: ${citations.invalid.join(', ')}.`:citations.missing?'No source citations were supplied.':'Citation numbers refer to the evidence below; their presence does not verify the claims.',prompt.sources.some(source=>source.truncated)?'Context was shortened to fit the model.':'',result.finishReason==='length'?'Output reached the 256-token limit.':'','AI-generated text may be wrong. Check the original sources.'].filter(Boolean).join(' ');
+    Object.assign(trace.generation,{...result,citations,status:'complete',elapsedMs:performance.now()-start});
+  }catch(error){
+    llm.cancel();loadedLLM=null;answer.textContent='No completed answer was generated.';note.textContent=`${error.message} Retrieved evidence remains available below.`;
+    Object.assign(trace.generation,{status:'failed',error:error.message,elapsedMs:performance.now()-start});llmStatus('Evidence-only mode active. Reload an answer model to retry.');
+  }finally{setBusy(false);}
 }
 $('#query-form').addEventListener('submit',event=>{event.preventDefault();const question=$('#question').value.trim();if(question)ask(question);});
 document.querySelectorAll('[data-question]').forEach(button=>button.onclick=()=>{$('#question').value=button.dataset.question;ask(button.dataset.question);});
@@ -161,5 +212,6 @@ function renderComparison(report){
   const details=el('details','comparison-details');details.append(el('summary','','Inspect all labeled questions and rankings'));
   for(const query of report.queries){const section=el('section','comparison-query');section.append(el('h5','',`${query.category}: ${query.question}`),el('p','eval-note',`Relevant sources: ${query.relevant.length?query.relevant.join(', '):'none (unanswerable)'}`));for(const method of report.methods){const row=method.rows.find(row=>row.queryId===query.id);section.append(el('p','eval-note',`${method.label}: ${row.results.length?row.results.map((hit,i)=>`${i+1}. ${hit.name}${query.relevant.includes(hit.docId)?' [relevant]':''}`).join(' · '):'no evidence'}`));}details.append(section);}panel.append(details);
 }
-updateModelChoice();showActive();
+for(const [key,info] of Object.entries(LLM_MODELS)){const option=el('option','',`${info.label} · ~${weightSize(info)} · ${info.tier}`);option.value=key;$('#answer-model').append(option);}
+updateLLMChoice();updateModelChoice();showActive();
 reindex();

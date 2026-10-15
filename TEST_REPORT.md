@@ -55,3 +55,12 @@ Fixtures contain synthetic project facts, not claims about real work. The fixtur
 This remains lexical extractive Q&A, without an LLM. It does not perform OCR. Image-only and password-protected PDFs require an unlocked, text-based version. Complex PDF layouts can have imperfect extraction order. The smoke tests do not establish general answer correctness or production-scale performance.
 
 Production browser verification is performed after deployment; its result is recorded in the task handoff.
+
+## WebLLM generation — 2026-10-15
+
+- Automated: 29/29 tests pass, including existing PDF/OCR/retrieval regressions plus six WebLLM catalog, prompt, citation and client tests. npm audit reports zero vulnerabilities.
+- Catalog: all four selected IDs verified against pinned WebLLM 0.2.86. Upstream MLC ndarray shard sizes and WebLLM GPU estimates independently checked using scripts/verify-llm-catalog.mjs.
+- Real browser/WebGPU: SmolLM2 135M f16 downloaded and initialized. Uploaded the two-page synthetic project-brief.pdf and asked the launch date. Output correctly included 21 November 2026. No citation emitted; missing-citation notice appeared.
+- Switched to Qwen2.5 0.5B q4f32. Download progress displayed, initialization completed and the same PDF question returned the correct date. No citation emitted; notice appeared. Exported query trace recorded actual model ID, page-2 context, complete answer, token usage (172 input / 15 output), completion timing and missing-citation check.
+- Query with no BM25 matches showed no-evidence response and did not generate. Load cancellation restored enabled controls and evidence-only mode. Selected Qwen cache removal completed successfully.
+- Llama 3B and Qwen 1.5B are catalog/manifest validated; they were not downloaded or generation-tested in this run. No cross-model answer-accuracy benchmark is claimed. WebGPU-unavailable and GPU-out-of-memory behavior are handled with errors/fallback, but were not reproduced on this compatible test GPU.

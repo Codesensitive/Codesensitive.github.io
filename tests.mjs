@@ -96,3 +96,38 @@ test('every benchmark label refers to an existing unique source and query IDs ar
   for(const query of benchmarkQueries)for(const id of query.relevant)assert.ok(ids.has(id));
   assert.ok(benchmarkQueries.some(query=>!query.relevant.length));assert.ok(benchmarkQueries.some(query=>query.relevant.length>1));
 });
+
+import {LLM_MODELS,buildGroundedPrompt,inspectCitations} from './dist/llm-models.js';
+import {LLMClient} from './dist/llm.js';
+import {prebuiltAppConfig} from '@mlc-ai/web-llm';
+test('answer model catalog uses supported pinned WebLLM models',()=>{
+ for(const model of Object.values(LLM_MODELS)){assert.ok(prebuiltAppConfig.model_list.some(record=>record.model_id===model.id));assert.ok(model.bytes>0);assert.ok(model.vram>0);}
+});
+test('grounded prompt preserves source numbering and refuses an empty corpus',()=>{
+ assert.throws(()=>buildGroundedPrompt('question',[]),/evidence/);
+ const prompt=buildGroundedPrompt('When is launch?',[{name:'brief.pdf',page:2,text:'Launch is 21 November 2026.'}]);
+ assert.equal(prompt.sources[0].citation,1);assert.equal(prompt.sources[0].page,2);assert.match(prompt.messages[0].content,/untrusted/);assert.match(prompt.messages[1].content,/21 November/);
+});
+test('grounded prompt bounds unicode, hostile escaping and source names',()=>{
+ const prompt=buildGroundedPrompt('Q'.repeat(3000),Array.from({length:5},()=>({name:'N'.repeat(2000),text:'\u0000😀'.repeat(3000)})));
+ assert.ok(new TextEncoder().encode(JSON.stringify(prompt.sources)).length<=2400);
+ assert.ok(prompt.sources.every(source=>source.truncated));assert.ok(prompt.messages[1].content.length<3200);
+});
+test('citation inspection reports missing and invalid references without claiming factual validation',()=>{
+ const sources=[{citation:1},{citation:2}];assert.deepEqual(inspectCitations('Answer [1] [1] [9]',sources),{cited:[1,9],invalid:[9],missing:false});assert.equal(inspectCitations('Uncited answer',sources).missing,true);
+});
+test('LLM client handles progress, completion, errors and concurrent requests',async()=>{
+ let worker={postMessage(data){this.last=data;},terminate(){}};
+ const client=new LLMClient(()=>worker),progress=[];
+ const result=client.request({action:'load'},message=>progress.push(message));
+ await assert.rejects(client.request({action:'load'}),/already running/);
+ worker.onmessage({data:{id:worker.last.id,type:'progress',message:'loading'}});
+ worker.onmessage({data:{id:worker.last.id,type:'result',value:{ready:true}}});
+ assert.deepEqual(await result,{ready:true});assert.deepEqual(progress,['loading']);
+ const failure=client.request({action:'generate'});worker.onmessage({data:{id:worker.last.id,type:'error',message:'Out of GPU memory'}});await assert.rejects(failure,/GPU memory/);client.cancel();
+});
+test('LLM cancellation rejects pending work, ignores late replies and permits a new worker',async()=>{
+ const workers=[],client=new LLMClient(()=>{const worker={postMessage(data){this.last=data;},terminate(){this.terminated=true;}};workers.push(worker);return worker;});
+ const cancelled=client.request({action:'load'});client.cancel();await assert.rejects(cancelled,/cancelled/);assert.equal(workers[0].terminated,true);
+ const next=client.request({action:'load'});workers[0].onmessage({data:{id:1,type:'result',value:'stale'}});workers[1].onmessage({data:{id:2,type:'result',value:'new'}});assert.equal(await next,'new');client.cancel();
+});

@@ -1,5 +1,6 @@
 node_modules/
 dist/vendor/transformers/transformers.js
+dist/vendor/webllm/webllm.js
 tests/fixtures/*-preview.png
 *.tar.gz
 *.tar

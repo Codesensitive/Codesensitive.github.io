@@ -10,6 +10,9 @@ import {LLMClient} from './llm.js?v=20261015-webllm';
 const llm=new LLMClient();let loadedLLM=null,advancedAnswerModel=null,uploadAbort=null;
 import {addSamples} from './corpus.js';
 import {modeSettings} from './modes.js?v=20261015-modes';
+import {ProgressCard} from './progress-card.js';
+const progressCard=new ProgressCard(document);
+const reportProgress=message=>progressCard.update(message);
 let uiMode='simple',operationCancelled=false;
 let docs=[],index,lastTrace=null,uploading=false;
 let activeModel='bm25',comparisonAbort=null;const embeddings=new EmbeddingClient();
@@ -19,14 +22,12 @@ const countWords=text=>(text.match(/\S+/g)||[]).length;
 const locationOf=hit=>`${hit.page?`page ${hit.page} · `:''}chunk ${hit.number}${hit.ocr?' · OCR':''}`;
 const settings=()=>modeSettings(uiMode,{retrieval:activeModel,chunkWords:Number($('#chunk-size').value),topK:Number($('#top-k').value),ocr:$('#enable-ocr').checked,answerModel:advancedAnswerModel});
 function clearResults(){lastTrace=null;$('#results').replaceChildren();$('#evaluation').replaceChildren();$('#status').textContent='';}
-function setBusy(busy,cancellable=false){
+function setBusy(busy,cancellable=false,title='Working locally',detail='Please keep this tab open.'){
   uploading=busy;
   document.querySelectorAll('.lab button,.lab input,.lab select,.mode-switch button').forEach(control=>control.disabled=busy);
   $('.upload').setAttribute('aria-disabled',String(busy));
   $('.lab').setAttribute('aria-busy',String(busy));
-  $('#cancel-model').hidden=!busy||!cancellable||Boolean(uploadAbort);$('#cancel-model').disabled=false;
-  $('#cancel-llm').hidden=true;
-  $('#cancel-simple').hidden=(uiMode!=='simple'&&!uploadAbort)||!busy||!cancellable;$('#cancel-simple').disabled=false;
+  if(busy)progressCard.start(title,detail,cancellable);else progressCard.end();
 }
 function reindex(){
   index=buildIndex(docs,settings().chunkWords);
@@ -59,10 +60,10 @@ async function ask(question){
   const config=settings(),start=performance.now(),modelUsed=config.retrieval;let profile=retrievalProfile(modelUsed),model=MODEL_CATALOG[profile.model],hits,retrievalWarning='';
   if(profile.kind==='bm25')hits=search(index,question,CANDIDATE_DEPTH);
   else{
-    setBusy(true,true);
+    setBusy(true,true,'Preparing document search','Loading the search model and indexing your documents.');
     try{
       if(index.chunks.length>MAX_SEMANTIC_CHUNKS)throw new Error('Use BM25 or reduce this corpus to 200 chunks for local embeddings.');
-      const ranked=await embeddings.request({action:'search',model:profile.model,chunks:index.chunks.map(chunk=>chunk.text),question,k:CANDIDATE_DEPTH},message=>$('#status').textContent=message);
+      const ranked=await embeddings.request({action:'search',model:profile.model,chunks:index.chunks.map(chunk=>chunk.text),question,k:CANDIDATE_DEPTH},reportProgress);
       const semantic=ranked.map(hit=>({...index.chunks[hit.i],score:hit.score}));
       hits=profile.kind==='hybrid'?fuseRankings(search(index,question,CANDIDATE_DEPTH),semantic,CANDIDATE_DEPTH):semantic;$('#status').textContent='';
     }catch(error){
@@ -98,14 +99,14 @@ async function ask(question){
 
   appendTraceButton(results);
   if(config.answerModel&&loadedLLM!==config.answerModel){
-    llm.cancel();loadedLLM=null;llmBusy();
-    try{await llm.request({action:'load',model:config.answerModel},message=>{$('#status').textContent=message;llmStatus(message);});loadedLLM=config.answerModel;showLLMActive();$('#status').textContent=retrievalWarning;}
+    llm.cancel();loadedLLM=null;llmBusy('Loading your answer model',`${LLM_MODELS[config.answerModel].label} · model files download once and may be cached.`);
+    try{await llm.request({action:'load',model:config.answerModel},reportProgress);loadedLLM=config.answerModel;showLLMActive();$('#status').textContent=retrievalWarning;}
     catch(error){llm.cancel();lastTrace.generation={model:LLM_MODELS[config.answerModel].id,status:operationCancelled?'cancelled':'failed',error:error.message};llmStatus(`No answer model loaded: ${error.message}`);$('#status').textContent=operationCancelled?'Cancelled. Retrieved passages are available below.':`${retrievalWarning} Local answer generation unavailable: ${error.message} You can read the source excerpts below.`;return;}
     finally{setBusy(false);}
   }
   if(config.answerModel&&loadedLLM===config.answerModel)await generateAnswer(question,hits,results);
 }
-function llmBusy(){setBusy(true,true);$('#cancel-model').hidden=true;$('#cancel-llm').hidden=false;$('#cancel-llm').disabled=false;}
+function llmBusy(title='Loading your answer model',detail='Checking your GPU and preparing local inference.'){setBusy(true,true,title,detail);}
 function llmStatus(message){$('#llm-status').textContent=message;}
 function showLLMActive(){
   const desired=settings().answerModel;
@@ -118,14 +119,13 @@ function updateLLMChoice(){
   $('#load-llm').textContent=info?'Download & load answer model':'Use evidence only';
 }
 $('#answer-model').onchange=updateLLMChoice;
-$('#cancel-llm').onclick=()=>{operationCancelled=true;llm.cancel();loadedLLM=null;showLLMActive();};
 $('#unload-llm').onclick=()=>{llm.cancel();loadedLLM=null;advancedAnswerModel=null;showLLMActive();};
 $('#load-llm').onclick=async()=>{
   if(uploading)return;const choice=$('#answer-model').value;
   operationCancelled=false;llm.cancel();loadedLLM=null;
   if(!LLM_MODELS[choice]){advancedAnswerModel=null;showLLMActive();return;}
-  llmBusy();llmStatus('Checking WebGPU and preparing model download…');
-  try{await llm.request({action:'load',model:choice},llmStatus);loadedLLM=choice;advancedAnswerModel=choice;showLLMActive();}
+  llmBusy('Loading your answer model',`${LLM_MODELS[choice].label} · checking your GPU and preparing the download.`);
+  try{await llm.request({action:'load',model:choice},reportProgress);loadedLLM=choice;advancedAnswerModel=choice;showLLMActive();}
   catch(error){llm.cancel();showLLMActive();$('#status').textContent=`${error.message} Source search is available.`;}
   finally{setBusy(false);}
 };
@@ -133,19 +133,19 @@ $('#clear-llm').onclick=async()=>{
   if(uploading)return;const model=$('#answer-model').value;
   if(!LLM_MODELS[model]){llmStatus('Select a model to clear its cached files.');return;}
   if(loadedLLM===model)loadedLLM=null;if(advancedAnswerModel===model)advancedAnswerModel=null;
-  llmBusy();llmStatus('Clearing the selected answer model cache…');
+  llmBusy('Clearing cached model files',`Removing cached files for ${LLM_MODELS[model].label}.`);
   try{await llm.request({action:'clear',model});showLLMActive();$('#status').textContent=`${LLM_MODELS[model].label} cached files cleared.`;}
   catch(error){llm.cancel();loadedLLM=null;llmStatus(`Could not clear the cache: ${error.message}`);}
   finally{setBusy(false);}
 };
 async function generateAnswer(question,hits,results){
   const model=loadedLLM,prompt=buildGroundedPrompt(question,hits),trace=lastTrace;
-  const panel=el('section','generated-answer'),answer=el('p','generated-text','Generating locally…'),note=el('p','eval-note');
+  const panel=el('section','generated-answer'),answer=el('p','generated-text'),note=el('p','eval-note');
   panel.append(el('h4','',`Generated answer · ${LLM_MODELS[model].label}`),answer,note);results.prepend(panel);
-  const start=performance.now();llmBusy();
+  const start=performance.now();llmBusy('Writing your answer',`${LLM_MODELS[model].label} is reading the retrieved evidence on your device.`);
   trace.generation={model:LLM_MODELS[model].id,parameters:GENERATION_OPTIONS,context:prompt.sources,questionUsed:prompt.questionUsed,questionTruncated:prompt.questionTruncated,status:'running'};
   try{
-    const result=await llm.request({action:'generate',model,messages:prompt.messages},text=>{answer.textContent=text||'Generating locally…';});
+    const result=await llm.request({action:'generate',model,messages:prompt.messages},text=>{answer.textContent=text||'';});
     if(!result.answer.trim())throw new Error('The model returned an empty answer.');
     const checked=checkedAnswer(result.answer,prompt.sources,hits,question),citations=checked.citations;
     answer.textContent=checked.text;
@@ -164,7 +164,7 @@ $('#open-files').onclick=()=>{if(!uploading)$('#files').click();};
 $('#files').addEventListener('change',async event=>{
   if(uploading)return;
   const input=event.target,files=[...input.files];if(!files.length)return;
-  clearResults();uploadAbort=new AbortController();setBusy(true,true);
+  clearResults();uploadAbort=new AbortController();setBusy(true,true,'Reading your documents',`${files.length} file${files.length===1?'':'s'} · text extraction and OCR run on your device.`);
   const errors=[],warnings=[];let total=corpusBytes(docs),added=0;
   try{
     for(const file of files){
@@ -172,8 +172,8 @@ $('#files').addEventListener('change',async event=>{
       try{
         validateFile(file);
         if(docs.length>=MAX_DOCUMENTS)throw new Error('Session limit reached (20 documents).');
-        $('#status').textContent=`Reading ${file.name}…`;
-        const document=await readDocument(file,progress=>{if(!uploadAbort?.signal.aborted)$('#status').textContent=`${file.name}: ${progress}`;},{ocr:settings().ocr,signal:uploadAbort.signal});
+        reportProgress(`Reading ${file.name}…`);
+        const document=await readDocument(file,progress=>{if(!uploadAbort?.signal.aborted)reportProgress(`${file.name}: ${progress}`);},{ocr:settings().ocr,signal:uploadAbort.signal});
         if(total+document.textBytes>MAX_CORPUS_BYTES)throw new Error('Session limit reached (8 MB of extracted text).');
         docs.push({id:crypto.randomUUID(),name:file.name,...document});total+=document.textBytes;added++;
         if(document.emptyPages)warnings.push(`${file.name}: ${document.emptyPages} page(s) had no selectable text; only extracted text is searchable.`);
@@ -188,7 +188,12 @@ $('#files').addEventListener('change',async event=>{
 for(const id of ['chunk-size','top-k'])$('#'+id).onchange=()=>{clearResults();reindex();$('#status').textContent='Settings updated. Submit your question to retrieve again.';};
 $('#reset').onclick=()=>{if(uploading)return;docs=structuredClone(samples);clearResults();reindex();$('#status').textContent='Sample corpus restored.';};
 $('#try-samples').onclick=()=>{if(uploading)return;try{docs=addSamples(docs,samples,MAX_DOCUMENTS);clearResults();reindex();$('#status').textContent='Sample documents added. Your uploads are preserved.';}catch(error){$('#status').textContent=error.message;}};
-$('#cancel-simple').onclick=()=>{if(uploadAbort){uploadAbort.abort(new DOMException('Upload cancelled.','AbortError'));return;}operationCancelled=true;embeddings.cancel();llm.cancel();loadedLLM=null;showLLMActive();};
+$('#cancel-operation').onclick=()=>{
+  if(uploadAbort){uploadAbort.abort(new DOMException('Upload cancelled.','AbortError'));return;}
+  operationCancelled=true;comparisonAbort?.abort();
+  if(embeddings.pending.size)embeddings.cancel();
+  if(llm.pending.size){llm.cancel();loadedLLM=null;}showLLMActive();
+};
 function switchMode(mode){
   if(uploading)return;uiMode=mode;$('#lab-panel').dataset.mode=mode;$('#lab-panel').setAttribute('aria-labelledby',`mode-${mode}`);
   for(const button of document.querySelectorAll('[data-ui-mode]')){const selected=button.dataset.uiMode===mode;button.setAttribute('aria-selected',String(selected));button.tabIndex=selected?0:-1;}
@@ -220,28 +225,27 @@ function showActive(){
   $('#retrieval-mode').textContent=`LOCAL RETRIEVAL / ${profile.label.toUpperCase()}`;
 }
 $('#embedding-model').onchange=updateModelChoice;
-$('#cancel-model').onclick=()=>{operationCancelled=true;comparisonAbort?.abort();embeddings.cancel();};
 $('#activate-model').onclick=async()=>{
   const choice=$('#embedding-model').value,profile=retrievalProfile(choice),previous=activeModel;operationCancelled=false;clearResults();
   if(choice==='bm25'){embeddings.cancel();activeModel='bm25';showActive();return;}
-  setBusy(true,true);
+  setBusy(true,true,'Preparing your search model',`${profile.label} · downloading weights and embedding your documents.`);
   try{
     if(index.chunks.length>MAX_SEMANTIC_CHUNKS)throw new Error('Local embeddings support up to 200 chunks. Reduce your corpus or use BM25.');
-    const result=await embeddings.request({action:'activate',model:profile.model,chunks:index.chunks.map(chunk=>chunk.text)},message=>$('#model-status').textContent=message);
+    const result=await embeddings.request({action:'activate',model:profile.model,chunks:index.chunks.map(chunk=>chunk.text)},reportProgress);
     activeModel=choice;showActive();$('#status').textContent=`${profile.label} ready. ${result.chunks} passages embedded locally. Model files may be cached; documents are not persisted.`;
   }catch(error){embeddings.cancel();activeModel=previous;showActive();$('#status').textContent=`${error.message} Previous retrieval mode preserved; its model reloads on the next query if needed.`;}
   finally{setBusy(false);}
 };
 $('#clear-models').onclick=async()=>{
-  if(uploading)return;embeddings.cancel();activeModel='bm25';showActive();clearResults();setBusy(true);
+  if(uploading)return;embeddings.cancel();activeModel='bm25';showActive();clearResults();setBusy(true,false,'Clearing cached search models','Releasing local model files and vectors.');
   try{if('caches' in window)await caches.delete(MODEL_CACHE);$('#status').textContent='Embedding model cache cleared and active vectors released. BM25 is active.';}
   catch{$('#status').textContent='BM25 is active. Your browser did not allow clearing the model cache.';}
   finally{setBusy(false);}
 };
 $('#compare-methods').onclick=async()=>{
-  if(uploading)return;clearResults();$('#comparison').replaceChildren();setBusy(true,true);comparisonAbort=new AbortController();
+  if(uploading)return;clearResults();$('#comparison').replaceChildren();setBusy(true,true,'Comparing retrieval methods','Preparing local models for the labeled comparison.');comparisonAbort=new AbortController();
   try{
-    const report=await runComparison(embeddings,message=>$('#status').textContent=message,comparisonAbort.signal);
+    const report=await runComparison(embeddings,reportProgress,comparisonAbort.signal);
     $('#status').textContent='Comparison complete. These are measured results on a small synthetic test set, not a general model ranking.';
     renderComparison(report);
   }catch(error){$('#status').textContent='Comparison did not complete.';$('#comparison').append(el('p','eval-note',`${error.message} No partial scores are reported. Your documents and chosen retrieval mode are preserved.`));}

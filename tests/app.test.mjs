@@ -24,7 +24,7 @@ async function setup(t,behavior=()=>{}){
  const old={};for(const [key,value] of Object.entries({document,window:dom.window,Worker:FakeWorker,matchMedia:()=>({matches:true}),caches:{delete:async()=>true}})){old[key]=Object.getOwnPropertyDescriptor(globalThis,key);Object.defineProperty(globalThis,key,{configurable:true,writable:true,value});}
  dom.window.HTMLAnchorElement.prototype.click=function(){downloads.push(this.href);};
  t.after(()=>{
-  for(const id of ['cancel-simple','cancel-llm','cancel-model']){const button=document.getElementById(id);if(button&&!button.disabled)button.click();}
+  for(const id of ['cancel-operation']){const button=document.getElementById(id);if(button&&!button.disabled)button.click();}
   dom.window.close();for(const key of Object.keys(old)){if(old[key])Object.defineProperty(globalThis,key,old[key]);else delete globalThis[key];}
  });
  await import(`../dist/app.js?test=${++sequence}`);
@@ -37,6 +37,27 @@ async function setup(t,behavior=()=>{}){
  return {$,click,until,idle,upload,ask,change,requests,workers,downloads,dom};
 }
 const file=()=>new File(['The launch date is 21 November 2026. The owner is Anuj Yadav.'],'brief.txt');
+
+test('embedding progress appears outside the sidebar, resets stage percentages, and cancels cleanly',async t=>{
+ const app=await setup(t,request=>request.action==='activate'?HOLD:undefined);
+ app.click('mode-advanced');app.change('embedding-model','minilm');const sidebar=app.$('#model-status').textContent;app.click('activate-model');
+ const card=app.$('#operation-card'),bar=app.$('#operation-progress');
+ assert.equal(card.hidden,false);assert.equal(card.closest('.lab'),null);assert.match(app.$('#operation-title').textContent,/search model/);
+ const worker=app.workers.at(-1),id=app.requests.at(-1).id;
+ worker.onmessage({data:{id,type:'progress',message:'Downloading weights 42%'}});
+ assert.equal(bar.getAttribute('aria-valuenow'),'42');assert.equal(app.$('#model-status').textContent,sidebar);
+ worker.onmessage({data:{id,type:'progress',message:'Initializing model'}});
+ assert.equal(bar.hasAttribute('aria-valuenow'),false);assert.equal(bar.classList.contains('indeterminate'),true);
+ app.click('cancel-operation');await app.idle();assert.equal(card.hidden,true);assert.equal(app.$('#mode-simple').disabled,false);
+});
+
+test('answer-model loading uses the shared card and leaves configuration text stable',async t=>{
+ const app=await setup(t,request=>request.action==='load'?HOLD:undefined);app.click('mode-advanced');app.change('answer-model','small');
+ const sidebar=app.$('#llm-status').textContent;app.click('load-llm');
+ assert.equal(app.$('#operation-card').hidden,false);assert.match(app.$('#operation-title').textContent,/answer model/);
+ assert.equal(app.$('#llm-status').textContent,sidebar);assert.equal(app.$('#cancel-operation').disabled,false);
+ app.click('cancel-operation');await app.idle();assert.equal(app.$('#operation-card').hidden,true);
+});
 
 test('Simple answer model does not silently enable generation in Advanced evidence-only mode',async t=>{
  const app=await setup(t);await app.upload([file()]);await app.ask('What is the launch date?');
@@ -60,7 +81,7 @@ test('cancelling a batch upload keeps earlier documents and stops reading remain
  const app=await setup(t);let started=false,third=false;
  const stuck={name:'slow.txt',size:10,arrayBuffer(){started=true;return new Promise(()=>{});}},later={name:'later.txt',size:10,arrayBuffer(){third=true;return new TextEncoder().encode('later').buffer;}};
  Object.defineProperty(app.$('#files'),'files',{configurable:true,value:[file(),stuck,later]});app.$('#files').dispatchEvent(new app.dom.window.Event('change'));
- await app.until(()=>started);app.click('cancel-simple');await app.idle();
+ await app.until(()=>started);app.click('cancel-operation');await app.idle();
  assert.equal(app.$('#doc-count').textContent,'01');assert.equal(third,false);assert.match(app.$('#status').textContent,/Upload cancelled/);assert.equal(app.$('#mode-advanced').disabled,false);
 });
 test('Simple model failures preserve source excerpts and yield an actionable fallback message',async t=>{
@@ -88,7 +109,7 @@ test('clearing a different cached answer model does not unload the active answer
 });
 test('comparison cancellation returns control and preserves uploaded documents',async t=>{
  const app=await setup(t,request=>request.kind==='embedding'&&request.action==='activate'?HOLD:undefined);app.click('mode-advanced');await app.upload([file()]);app.click('compare-methods');
- assert.equal(app.$('#mode-simple').disabled,true);app.click('cancel-model');await app.idle();assert.equal(app.$('#doc-count').textContent,'01');assert.match(app.$('#comparison').textContent,/cancelled/i);assert.equal(app.$('#mode-simple').disabled,false);
+ assert.equal(app.$('#mode-simple').disabled,true);app.click('cancel-operation');await app.idle();assert.equal(app.$('#doc-count').textContent,'01');assert.match(app.$('#comparison').textContent,/cancelled/i);assert.equal(app.$('#mode-simple').disabled,false);
 });
 
 test('an uncited incorrect model answer is replaced by source text in the UI and trace',async t=>{

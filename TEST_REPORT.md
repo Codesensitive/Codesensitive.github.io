@@ -77,3 +77,7 @@ Deployment also generates content-hashed app/style entry files, preventing a cac
 
 
 Full-system audit (2026-10-15): 63 tests passed; zero reported dependency vulnerabilities. See AUDIT_REPORT.md for fixed defects, actual browser checks and controlled failure-test boundaries.
+# Separate progress cards
+
+The suite now passes 65 tests. Regression checks verify that embedding and answer-model progress stays outside the sidebar, percentage stages reset correctly, configuration text stays stable, and cancellation restores controls. Browser checks confirmed real BGE download progress on desktop and Qwen loading at a 390 px viewport with no horizontal overflow.
+

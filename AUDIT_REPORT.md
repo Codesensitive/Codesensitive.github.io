@@ -54,3 +54,7 @@ Citation numbers do not establish factual entailment. A model can still make a w
 This audit physically exercised a compatible GPU with Qwen 0.5B; earlier validation also exercised SmolLM2. The two larger LLM choices were not downloaded during this audit. Missing-WebGPU, allocation/network failures, stuck work and worker races are tested with controlled doubles, not every physical browser/GPU combination. Browser cache eviction, model-host availability and already-open historic versions remain environmental limits.
 
 This is a bounded audit of the current application, not a guarantee that no possible defects remain. GitHub Pages publishes the tested artifact through the existing workflow; the final public smoke check is recorded in the completion and local audit log.
+# Progress presentation follow-up
+
+All long-running operations now use a separate sticky card above the lab: uploads/OCR, embeddings, WebLLM loading and generation, cache clearing, and retrieval comparisons. It scrolls into view when work begins and disappears when work finishes. Measurable percentages are explicitly labeled as current-stage progress; other stages use an indeterminate indicator. Cancellation is shared across operations. Sidebar labels retain the active configuration. The updated suite passes 65 tests; desktop and mobile model-loading cards were checked in the browser.
+

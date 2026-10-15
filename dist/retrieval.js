@@ -1,4 +1,4 @@
-import {MODEL_CATALOG} from './models.js?v=20261015-hybrid';
+import {MODEL_CATALOG} from './models.js?v=20261015-webllm';
 export const RRF_CONSTANT=60;
 export const CANDIDATE_DEPTH=20;
 export function retrievalProfile(choice){

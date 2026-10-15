@@ -15,3 +15,4 @@ copy('tesseract.js-core/LICENSE','ocr/core/LICENSE');
 copy('@tesseract.js-data/eng/4.0.0_best_int/eng.traineddata.gz','ocr/lang/eng.traineddata.gz');
 copy('@tesseract.js-data/eng/README.md','ocr/lang/README.md');
 console.log('Pinned browser embedding and OCR runtimes prepared.');
+await import('./prepare-site.mjs');

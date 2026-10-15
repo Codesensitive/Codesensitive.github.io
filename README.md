@@ -51,3 +51,4 @@ GitHub Actions runs the automated tests before deploying. Browser end-to-end cov
 See `WEBLLM_GUIDE.md` for local answer generation, model sizes, GPU requirements, privacy, limitations and implementation details.
 
 The live lab has Simple (default) and Advanced tiles. Simple handles model/retrieval/OCR choices automatically after upload and question submission. Advanced exposes all strategy controls and evaluation tools. See WEBLLM_GUIDE.md for defaults, downloads and fallback behavior.
+Deployment generates content-hashed app/style entry files to avoid mixing a new interface with cached scripts or styles. After editing locally, run npm run prepare:ai again to refresh these entry assets.

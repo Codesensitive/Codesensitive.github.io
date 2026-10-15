@@ -73,3 +73,4 @@ Production browser verification is performed after deployment; its result is rec
 - Switching to Advanced revealed all controls while preserving the uploaded PDF and question. Changed chunk size to 240 and top-k to 5, switched to Simple and back: both Advanced values were retained. Keyboard ArrowLeft switched to Simple.
 - Cancelled a Simple generation: controls returned, documents and retrieved evidence remained visible, incomplete output was discarded.
 - Uploaded scanned-note.png in Simple with no OCR toggle; automatic English OCR extracted its text and recorded OCR provenance.
+Deployment also generates content-hashed app/style entry files, preventing a cached previous entry script from initializing the new mode interface.

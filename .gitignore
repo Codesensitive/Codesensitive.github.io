@@ -1,9 +1,9 @@
 node_modules/
-dist/app-*.js
-dist/style-*.css
 dist/vendor/transformers/transformers.js
 dist/vendor/webllm/webllm.js
 tests/fixtures/*-preview.png
 *.tar.gz
 *.tar
 .DS_Store
+
+dist/assets/

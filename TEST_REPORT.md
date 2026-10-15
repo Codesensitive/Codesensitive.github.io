@@ -74,3 +74,6 @@ Production browser verification is performed after deployment; its result is rec
 - Cancelled a Simple generation: controls returned, documents and retrieved evidence remained visible, incomplete output was discarded.
 - Uploaded scanned-note.png in Simple with no OCR toggle; automatic English OCR extracted its text and recorded OCR provenance.
 Deployment also generates content-hashed app/style entry files, preventing a cached previous entry script from initializing the new mode interface.
+
+
+Full-system audit (2026-10-15): 63 tests passed; zero reported dependency vulnerabilities. See AUDIT_REPORT.md for fixed defects, actual browser checks and controlled failure-test boundaries.

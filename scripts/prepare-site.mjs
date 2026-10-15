@@ -1,13 +1,37 @@
-import {readFileSync,writeFileSync} from 'node:fs';
+import {readFileSync,writeFileSync,readdirSync,mkdirSync,unlinkSync} from 'node:fs';
 import {createHash} from 'node:crypto';
-const root=new URL('../dist/',import.meta.url);
-let html=readFileSync(new URL('index.html',root),'utf8');
-for(const [name,extension] of [['app','js'],['style','css']]){
-  const data=readFileSync(new URL(`${name}.${extension}`,root));
-  const hash=createHash('sha256').update(data).digest('hex').slice(0,12);
-  const output=`${name}-${hash}.${extension}`;
-  writeFileSync(new URL(output,root),data);
-  html=html.replace(new RegExp(`${name}(?:-[a-f0-9]{12})?\\.${extension}(?:\\?[^"']*)?`,'g'),output);
+import path from 'node:path';
+import {fileURLToPath} from 'node:url';
+
+export function prepareSite(directory){
+ const root=path.resolve(directory),output=path.join(root,'assets');mkdirSync(output,{recursive:true});
+ // Remove only build-generated files within the explicit assets directory.
+ for(const name of readdirSync(output))if(/^[\w-]+-[a-f0-9]{12}\.(js|css)$/.test(name))unlinkSync(path.join(output,name));
+ for(const name of readdirSync(root))if(/^(app|style)-[a-f0-9]{12}\.(js|css)$/.test(name))unlinkSync(path.join(root,name));
+ const names=readdirSync(root).filter(name=>name.endsWith('.js')),available=new Set(names),built=new Map(),visiting=new Set();
+ const hash=text=>createHash('sha256').update(text).digest('hex').slice(0,12);
+ function build(name){
+  if(built.has(name))return built.get(name);
+  if(visiting.has(name))throw new Error(`Circular module dependency: ${name}`);
+  visiting.add(name);
+  let source=readFileSync(path.join(root,name),'utf8');
+  source=source.replace(/(['"])(\.\/([\w-]+\.js))(?:\?[^'"]*)?\1/g,(match,quote,relative,target)=>{
+   if(!available.has(target))throw new Error(`Missing first-party module ${target} referenced by ${name}`);
+   return `${quote}./${build(target)}${quote}`;
+  }).replace(/(['"])\.\/vendor\//g,'$1../vendor/');
+  const filename=`${name.slice(0,-3)}-${hash(source)}.js`;
+  writeFileSync(path.join(output,filename),source);built.set(name,filename);visiting.delete(name);return filename;
+ }
+ for(const name of names)build(name);
+ const css=readFileSync(path.join(root,'style.css'),'utf8'),stylesheet=`style-${hash(css)}.css`;
+ writeFileSync(path.join(output,stylesheet),css);
+ let html=readFileSync(path.join(root,'index.html'),'utf8');
+ html=html.replace(/(?:assets\/)?app(?:-[a-f0-9]{12})?\.js(?:\?[^"']*)?/g,`assets/${built.get('app.js')}`)
+  .replace(/(?:assets\/)?style(?:-[a-f0-9]{12})?\.css(?:\?[^"']*)?/g,`assets/${stylesheet}`);
+ writeFileSync(path.join(root,'index.html'),html);
+ return Object.fromEntries([...built,['style.css',stylesheet]]);
 }
-writeFileSync(new URL('index.html',root),html);
-console.log('Content-hashed page entry assets prepared.');
+if(process.argv[1]&&path.resolve(process.argv[1])===fileURLToPath(import.meta.url)){
+ const manifest=prepareSite(fileURLToPath(new URL('../dist/',import.meta.url)));
+ console.log(`Prepared ${Object.keys(manifest).length} content-hashed modules/styles, including workers.`);
+}

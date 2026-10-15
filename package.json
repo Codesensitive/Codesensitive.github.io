@@ -4,9 +4,10 @@
   "type": "module",
   "scripts": {
     "start": "node server.mjs",
-    "test": "node --test tests.mjs",
+    "test": "node --test tests.mjs tests/*.test.mjs",
     "prepare:pdf": "node scripts/prepare-pdf.mjs",
-    "prepare:ai": "node scripts/prepare-ai.mjs"
+    "prepare:ai": "node scripts/prepare-ai.mjs",
+    "prestart": "npm run prepare:ai"
   },
   "dependencies": {
     "@huggingface/transformers": "4.3.1",
@@ -14,5 +15,8 @@
     "@tesseract.js-data/eng": "1.0.0",
     "pdfjs-dist": "6.4.299",
     "tesseract.js": "7.0.0"
+  },
+  "devDependencies": {
+    "jsdom": "30.1.2"
   }
 }

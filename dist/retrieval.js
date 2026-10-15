@@ -1,6 +1,11 @@
 import {MODEL_CATALOG} from './models.js?v=20261015-webllm';
 export const RRF_CONSTANT=60;
 export const CANDIDATE_DEPTH=20;
+export function uniqueEvidence(hits,k=3){
+  const seen=new Set(),results=[];
+  for(const hit of hits){const text=hit.text.replace(/\s+/gu,' ').trim();if(!text||seen.has(text))continue;seen.add(text);results.push(hit);if(results.length>=k)break;}
+  return results;
+}
 export function retrievalProfile(choice){
   if(choice==='bm25')return {kind:'bm25',model:null,label:'BM25'};
   const hybrid=choice.startsWith('hybrid-'),model=hybrid?choice.slice(7):choice,info=MODEL_CATALOG[model];

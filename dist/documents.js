@@ -1,3 +1,5 @@
+import {abortable} from './abort.js';
+import {imageDimensions} from './image-info.js';
 export const MAX_FILE_BYTES=2*1024*1024;
 export const MAX_CORPUS_BYTES=8*1024*1024;
 export const MAX_DOCUMENTS=20;
@@ -18,24 +20,36 @@ export function validateFile(file){
 }
 export function corpusBytes(docs){return docs.reduce((sum,doc)=>sum+bytes(doc.text),0);}
 export async function readDocument(file,onProgress=()=>{},options={}){
+  validateFile(file);options.signal?.throwIfAborted();
+  const deadline=new AbortController(),signal=AbortSignal.any([deadline.signal,...(options.signal?[options.signal]:[])]);
+  const timer=setTimeout(()=>deadline.abort(new Error('Document processing timed out. Try a smaller file.')),options.timeoutMs??(options.ocr?180000:30000));
+  try{return await abortable(()=>parseDocument(file,message=>{if(!signal.aborted)onProgress(message);},{...options,signal}),signal);}
+  finally{clearTimeout(timer);}
+}
+async function parseDocument(file,onProgress,options){
   validateFile(file);
-  const buffer=await file.arrayBuffer();
+  options.signal?.throwIfAborted();
+  const buffer=await abortable(()=>file.arrayBuffer(),options.signal);
   const recognize=async image=>{
     const {recognizeImage}=await import('./ocr.js?v=20261015-webllm');
-    return recognizeImage(image,onProgress);
+    return recognizeImage(image,onProgress,{signal:options.signal});
   };
   if(/\.(png|jpe?g)$/i.test(file.name)){
     if(!options.ocr)throw new Error('Enable English OCR before adding images.');
-    const bitmap=await createImageBitmap(file);
+    imageDimensions(buffer); // Bound allocation before the browser decodes pixels.
+    const decoding=createImageBitmap(file);
+    decoding.then(bitmap=>{if(options.signal?.aborted)bitmap.close();},()=>{});
+    let bitmap;try{bitmap=await abortable(()=>decoding,options.signal);}catch(error){if(options.signal?.aborted)throw error;throw new Error('Could not decode this image. Try a valid PNG or JPEG.');}
     try{
       if(bitmap.width*bitmap.height>16000000)throw new Error('Image exceeds the 16-megapixel limit.');
       const canvas=document.createElement('canvas');
       const scale=Math.min(1,2400/Math.max(bitmap.width,bitmap.height));
       canvas.width=Math.ceil(bitmap.width*scale);canvas.height=Math.ceil(bitmap.height*scale);
-      canvas.getContext('2d').drawImage(bitmap,0,0,canvas.width,canvas.height);
-      const result=await recognize(canvas);
-      if(!result.text)throw new Error('OCR found no readable text. Try a clearer image.');
-      return {text:result.text,kind:'image',ocrPages:1,textBytes:bytes(result.text)};
+      const context=canvas.getContext('2d');context.fillStyle='#ffffff';context.fillRect(0,0,canvas.width,canvas.height);context.drawImage(bitmap,0,0,canvas.width,canvas.height);
+      try{const result=await recognize(canvas);
+        if(!result.text)throw new Error('OCR found no readable text. Try a clearer image.');
+        return {text:result.text,kind:'image',ocrPages:1,textBytes:bytes(result.text)};
+      }finally{canvas.width=canvas.height=0;}
     }finally{bitmap.close();}
   }
   if(!/\.pdf$/i.test(file.name)){
@@ -46,31 +60,33 @@ export async function readDocument(file,onProgress=()=>{},options={}){
     return {text,kind:'text',textBytes:bytes(text)};
   }
   if(!new TextDecoder().decode(buffer.slice(0,1024)).includes('%PDF-'))throw new Error('This file is not a valid PDF.');
-  const pdf=await getPdfRuntime();
+  const pdf=await abortable(()=>getPdfRuntime(),options.signal);options.signal.throwIfAborted();
   const base=new URL('./vendor/pdfjs/',import.meta.url);
   const resource=path=>{const url=new URL(path,base);return url.protocol==='file:'?decodeURIComponent(url.pathname).replace(/^\/([A-Za-z]:)/,'$1'):url.href;};
   const task=pdf.getDocument({data:new Uint8Array(buffer),isEvalSupported:false,stopAtErrors:true,cMapUrl:resource('cmaps/'),cMapPacked:true,standardFontDataUrl:resource('standard_fonts/'),wasmUrl:resource('wasm/')});
-  let timedOut=false;
-  const timer=setTimeout(()=>{timedOut=true;void task.destroy();},options.ocr?180000:30000);
+  task.promise.catch(()=>{});const signal=options.signal;
+  const destroy=()=>{void task.destroy().catch(()=>{});};signal.addEventListener('abort',destroy,{once:true});
   try{
-    const document=await task.promise;
+    const document=await abortable(()=>task.promise,signal);
     if(document.numPages>MAX_PDF_PAGES)throw new Error(`PDF exceeds the ${MAX_PDF_PAGES}-page limit.`);
     const pages=[];let textBytes=0,ocrPages=0;
     for(let n=1;n<=document.numPages;n++){
       onProgress(`Reading page ${n} of ${document.numPages}…`);
-      const page=await document.getPage(n);
-      const content=await page.getTextContent();
-      let text=content.items.filter(item=>typeof item.str==='string').map(item=>item.str+(item.hasEOL?'\n':' ')).join('').trim();
+      const page=await abortable(()=>document.getPage(n),signal);
+      const content=await abortable(()=>page.getTextContent(),signal);
+      const parts=[];let pageBytes=0;
+      for(const item of content.items)if(typeof item.str==='string'){const part=item.str+(item.hasEOL?'\n':' ');pageBytes+=bytes(part);if(textBytes+pageBytes>MAX_CORPUS_BYTES)throw new Error('Extracted text exceeds the 8 MB session limit.');parts.push(part);}
+      let text=parts.join('').trim();
       let ocr=false;
       if(!text&&options.ocr){
         if(ocrPages>=10)throw new Error('OCR is limited to 10 scanned pages per PDF. Split this PDF into smaller files.');
         const viewport=page.getViewport({scale:1}),scale=Math.min(2,2400/Math.max(viewport.width,viewport.height));
         const rendered=page.getViewport({scale}),canvas=globalThis.document.createElement('canvas');
         canvas.width=Math.ceil(rendered.width);canvas.height=Math.ceil(rendered.height);
-        try{await page.render({canvasContext:canvas.getContext('2d'),viewport:rendered}).promise;const result=await recognize(canvas);text=result.text;ocr=true;ocrPages++;}
+        try{await abortable(()=>page.render({canvasContext:canvas.getContext('2d'),viewport:rendered}).promise,signal);const result=await recognize(canvas);text=result.text;ocr=true;ocrPages++;}
         finally{canvas.width=canvas.height=0;}
       }
-      if(timedOut)throw new Error('PDF processing timed out.');
+      signal.throwIfAborted();
       textBytes+=bytes(text)+1;
       if(textBytes>MAX_CORPUS_BYTES)throw new Error('Extracted text exceeds the 8 MB session limit.');
       pages.push({page:n,text,ocr});page.cleanup();
@@ -79,9 +95,9 @@ export async function readDocument(file,onProgress=()=>{},options={}){
     if(!text.trim())throw new Error(options.ocr?'OCR found no readable text. Try a clearer scan.':'No selectable text found. Enable English OCR and re-add this scanned PDF.');
     return {text,pages,pageCount:document.numPages,emptyPages:pages.filter(page=>!page.text.trim()).length,ocrPages,kind:'pdf',textBytes:bytes(text)};
   }catch(error){
-    if(timedOut)throw new Error('PDF processing timed out. Try a smaller PDF.');
+    if(signal.aborted)throw signal.reason;
     if(error.name==='PasswordException')throw new Error('Password-protected PDFs are not supported. Upload an unlocked copy.');
     if(['InvalidPDFException','FormatError','UnknownErrorException'].includes(error.name))throw new Error('Could not read this PDF. It may be damaged or unsupported.');
     throw error;
-  }finally{clearTimeout(timer);await task.destroy();}
+  }finally{signal.removeEventListener('abort',destroy);await task.destroy();}
 }

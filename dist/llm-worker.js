@@ -6,7 +6,7 @@ self.onmessage=async({data:{id,action,model,messages}})=>{
   try{
     const info=LLM_MODELS[model];if(!info)throw new Error('Unknown answer model.');
     if(action==='clear'){
-      if(engine)await engine.unload();engine=null;loaded=null;
+      if(loaded===model){if(engine)await engine.unload();engine=null;loaded=null;}
       await deleteModelAllInfoInCache(info.id);send('result',{value:{cleared:true}});return;
     }
     if(action==='load'){

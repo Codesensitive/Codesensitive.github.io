@@ -1,4 +1,5 @@
 import {cpSync,mkdirSync,readdirSync} from 'node:fs';
+import {fileURLToPath} from 'node:url';
 const root=new URL('../',import.meta.url);
 function copy(from,to){const destination=new URL(`dist/vendor/${to}`,root);mkdirSync(new URL('./',destination),{recursive:true});cpSync(new URL(`node_modules/${from}`,root),destination,{recursive:true});}
 copy('@huggingface/transformers/dist/transformers.min.js','transformers/transformers.js');
@@ -15,4 +16,7 @@ copy('tesseract.js-core/LICENSE','ocr/core/LICENSE');
 copy('@tesseract.js-data/eng/4.0.0_best_int/eng.traineddata.gz','ocr/lang/eng.traineddata.gz');
 copy('@tesseract.js-data/eng/README.md','ocr/lang/README.md');
 console.log('Pinned browser embedding and OCR runtimes prepared.');
-await import('./prepare-site.mjs');
+await import('./prepare-pdf.mjs');
+const {prepareSite}=await import('./prepare-site.mjs');
+prepareSite(fileURLToPath(new URL('../dist/',import.meta.url)));
+console.log('All first-party modules and workers fingerprinted.');

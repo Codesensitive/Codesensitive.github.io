@@ -131,3 +131,11 @@ test('LLM cancellation rejects pending work, ignores late replies and permits a 
  const cancelled=client.request({action:'load'});client.cancel();await assert.rejects(cancelled,/cancelled/);assert.equal(workers[0].terminated,true);
  const next=client.request({action:'load'});workers[0].onmessage({data:{id:1,type:'result',value:'stale'}});workers[1].onmessage({data:{id:2,type:'result',value:'new'}});assert.equal(await next,'new');client.cancel();
 });
+
+import {modeSettings} from './dist/modes.js';
+test('Simple chooses automatic defaults while Advanced settings remain unchanged',()=>{
+ const advanced={retrieval:'hybrid-bge',chunkWords:240,topK:5,ocr:false,answerModel:'larger'};
+ const before=structuredClone(advanced);
+ assert.deepEqual(modeSettings('simple',advanced),{retrieval:'hybrid-minilm',chunkWords:120,topK:3,ocr:true,answerModel:'small'});
+ assert.deepEqual(modeSettings('advanced',advanced),before);assert.deepEqual(advanced,before);
+});

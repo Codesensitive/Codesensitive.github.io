@@ -64,3 +64,12 @@ Production browser verification is performed after deployment; its result is rec
 - Switched to Qwen2.5 0.5B q4f32. Download progress displayed, initialization completed and the same PDF question returned the correct date. No citation emitted; notice appeared. Exported query trace recorded actual model ID, page-2 context, complete answer, token usage (172 input / 15 output), completion timing and missing-citation check.
 - Query with no BM25 matches showed no-evidence response and did not generate. Load cancellation restored enabled controls and evidence-only mode. Selected Qwen cache removal completed successfully.
 - Llama 3B and Qwen 1.5B are catalog/manifest validated; they were not downloaded or generation-tested in this run. No cross-model answer-accuracy benchmark is claimed. WebGPU-unavailable and GPU-out-of-memory behavior are handled with errors/fallback, but were not reproduced on this compatible test GPU.
+
+## Simple / Advanced experience — 2026-10-15
+
+- 30/30 automated tests pass, including a check that Simple chooses its fixed defaults without mutating Advanced configuration.
+- Browser: Simple is selected initially, corpus is empty, upload/question controls are visible, and model/retrieval/evaluation controls are hidden.
+- Uploaded project-brief.pdf in Simple and asked the launch date without choosing a strategy or model. Automatic hybrid BM25+MiniLM retrieval plus Qwen2.5 0.5B returned 21 November 2026 with page-2 source evidence. Missing model citations remained visibly flagged.
+- Switching to Advanced revealed all controls while preserving the uploaded PDF and question. Changed chunk size to 240 and top-k to 5, switched to Simple and back: both Advanced values were retained. Keyboard ArrowLeft switched to Simple.
+- Cancelled a Simple generation: controls returned, documents and retrieved evidence remained visible, incomplete output was discarded.
+- Uploaded scanned-note.png in Simple with no OCR toggle; automatic English OCR extracted its text and recorded OCR provenance.

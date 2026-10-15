@@ -75,13 +75,16 @@ test('OCR workers that initialize after cancellation are also released',async()=
 test('build fingerprints imported modules and workers and updates parent hashes',t=>{
  const root=mkdtempSync(path.join(os.tmpdir(),'evidence-build-test-'));
  t.after(()=>{if(path.dirname(root)===path.resolve(os.tmpdir())&&path.basename(root).startsWith('evidence-build-test-'))rmSync(root,{recursive:true,force:true});});
- writeFileSync(path.join(root,'index.html'),'<link href="style.css"><script src="app.js"></script>');writeFileSync(path.join(root,'style.css'),'body{color:black}');
+ writeFileSync(path.join(root,'index.html'),'<link href="style.css"><link href="/case-study.css"><script src="app.js"></script>');writeFileSync(path.join(root,'style.css'),'body{color:black}');
+ writeFileSync(path.join(root,'case-study.css'),'.case{color:green}');writeFileSync(path.join(root,'evidence-lab.html'),'<link href="/style.css"><link href="/case-study.css">');
  writeFileSync(path.join(root,'app.js'),"import './client.js?v=old';");writeFileSync(path.join(root,'client.js'),"new Worker(new URL('./worker.js?v=old',import.meta.url));");writeFileSync(path.join(root,'worker.js'),"import './vendor/runtime.js'; const version=1;");
  const first=prepareSite(root);assert.ok(readFileSync(path.join(root,'assets',first['worker.js']),'utf8').includes('../vendor/runtime.js'));
- writeFileSync(path.join(root,'worker.js'),"import './vendor/runtime.js'; const version=2;");const second=prepareSite(root);
+ writeFileSync(path.join(root,'worker.js'),"import './vendor/runtime.js'; const version=2;");writeFileSync(path.join(root,'case-study.css'),'.case{color:blue}');const second=prepareSite(root);
+ assert.notEqual(first['case-study.css'],second['case-study.css']);
+ for(const page of ['index.html','evidence-lab.html']){const html=readFileSync(path.join(root,page),'utf8');assert.ok(html.includes(`assets/${second['case-study.css']}`));assert.ok(html.includes(`assets/${second['style.css']}`));}
  for(const name of ['app.js','client.js','worker.js'])assert.notEqual(first[name],second[name]);
  for(const [name,filename] of Object.entries(second))assert.ok(existsSync(path.join(root,'assets',filename)),name);
- assert.deepEqual(prepareSite(root),second);assert.equal(readdirSync(path.join(root,'assets')).length,4);
+ assert.deepEqual(prepareSite(root),second);assert.equal(readdirSync(path.join(root,'assets')).length,5);
  assert.ok(readFileSync(path.join(root,'index.html'),'utf8').includes(`assets/${second['app.js']}`));
 });
 

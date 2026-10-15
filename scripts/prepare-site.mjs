@@ -25,11 +25,19 @@ export function prepareSite(directory){
  for(const name of names)build(name);
  const css=readFileSync(path.join(root,'style.css'),'utf8'),stylesheet=`style-${hash(css)}.css`;
  writeFileSync(path.join(output,stylesheet),css);
- let html=readFileSync(path.join(root,'index.html'),'utf8');
- html=html.replace(/(?:assets\/)?app(?:-[a-f0-9]{12})?\.js(?:\?[^"']*)?/g,`assets/${built.get('app.js')}`)
-  .replace(/(?:assets\/)?style(?:-[a-f0-9]{12})?\.css(?:\?[^"']*)?/g,`assets/${stylesheet}`);
- writeFileSync(path.join(root,'index.html'),html);
- return Object.fromEntries([...built,['style.css',stylesheet]]);
+ const styles=new Map([['style.css',stylesheet]]);
+ if(readdirSync(root).includes('case-study.css')){
+  const source=readFileSync(path.join(root,'case-study.css'),'utf8'),filename=`case-study-${hash(source)}.css`;
+  writeFileSync(path.join(output,filename),source);styles.set('case-study.css',filename);
+ }
+ for(const name of readdirSync(root).filter(name=>name.endsWith('.html'))){
+  let html=readFileSync(path.join(root,name),'utf8');
+  html=html.replace(/(?:assets\/)?app(?:-[a-f0-9]{12})?\.js(?:\?[^"']*)?/g,`assets/${built.get('app.js')}`)
+   .replace(/(?:assets\/)?(?<![\w-])style(?:-[a-f0-9]{12})?\.css(?:\?[^"']*)?/g,`assets/${stylesheet}`);
+  if(styles.has('case-study.css'))html=html.replace(/(?:assets\/)?case-study(?:-[a-f0-9]{12})?\.css(?:\?[^"']*)?/g,`assets/${styles.get('case-study.css')}`);
+  writeFileSync(path.join(root,name),html);
+ }
+ return Object.fromEntries([...built,...styles]);
 }
 if(process.argv[1]&&path.resolve(process.argv[1])===fileURLToPath(import.meta.url)){
  const manifest=prepareSite(fileURLToPath(new URL('../dist/',import.meta.url)));
